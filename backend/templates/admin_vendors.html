@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendors Management</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        .section-card {
+            background: #f7fafd;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            padding: 28px 32px 32px 32px;
+            margin-bottom: 32px;
+        }
+        .section-title {
+            color: #0288d1;
+            font-size: 1.4em;
+            margin-bottom: 18px;
+            font-weight: 600;
+        }
+        .add-form {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            padding: 24px 18px 18px 18px;
+            margin-bottom: 18px;
+        }
+        .add-form label {
+            margin-top: 8px;
+        }
+        .add-form input {
+            margin-bottom: 14px;
+        }
+        .dashboard-header h1 {
+            color: #0288d1;
+            font-size: 2em;
+            font-weight: 700;
+            margin-bottom: 0.5em;
+        }
+        .dashboard-header {
+            margin-bottom: 24px;
+        }
+        @media (max-width: 700px) {
+            .section-card, .add-form { padding: 10px 2vw; }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <span class="sidebar-logo">🛒</span>
+            <span class="sidebar-title">Admin Panel</span>
+        </div>
+        <ul class="sidebar-nav">
+            <li><a href="/admin/dashboard"><span class="sidebar-icon">📦</span> Products</a></li>
+            <li><a href="/admin/customers"><span class="sidebar-icon">👥</span> Customers</a></li>
+            <li><a href="/admin/vendors" class="active"><span class="sidebar-icon">🏢</span> Vendors</a></li>
+            <li><a href="/admin/companies"><span class="sidebar-icon">🏭</span> Companies</a></li>
+        </ul>
+    </div>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1>Vendors</h1>
+        </div>
+        <div class="section-card">
+            <div class="section-title">Add Vendor</div>
+            <form class="add-form" method="POST">
+                <label for="vendor_name">Vendor Name:</label>
+                <input type="text" id="vendor_name" name="vendor_name" required>
+                <button type="submit">Add Vendor</button>
+            </form>
+        </div>
+        <div class="section-card">
+            <div class="section-title">All Vendors</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Vendor Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for vendor in vendors %}
+                    <tr>
+                        <td>{{ vendor.VendorName }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

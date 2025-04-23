@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        .dashboard-header h1 span {
+            color: #4fc3f7;
+            font-weight: bold;
+        }
+        .product-card {
+            background: #f7fafd;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            padding: 18px 22px;
+            margin: 18px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: box-shadow 0.2s;
+        }
+        .product-card:hover {
+            box-shadow: 0 4px 16px rgba(79,195,247,0.15);
+        }
+        .product-info {
+            flex: 1;
+        }
+        .product-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .product-status {
+            font-weight: bold;
+            color: #0288d1;
+        }
+        .product-status.unavailable {
+            color: #e53935;
+        }
+        .order-form input[type="number"] {
+            width: 60px;
+            margin-right: 8px;
+        }
+        .sidebar .sidebar-nav a.active {
+            background: #232526;
+            color: #4fc3f7;
+            border-left: 4px solid #4fc3f7;
+        }
+        @media (max-width: 700px) {
+            .product-card { flex-direction: column; align-items: flex-start; }
+            .product-actions { margin-top: 10px; }
+        }
+        .profile-trigger {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 2100;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #e3e8ee;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: box-shadow 0.2s;
+        }
+        .profile-trigger img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+        }
+        .sidebar-right {
+            position: fixed;
+            top: 0;
+            right: -260px;
+            width: 240px;
+            height: 100vh;
+            background: linear-gradient(135deg, #232526 0%, #414345 100%);
+            color: #fff;
+            box-shadow: -2px 0 8px rgba(0,0,0,0.07);
+            z-index: 2000;
+            transition: right 0.3s cubic-bezier(.4,0,.2,1);
+            display: flex;
+            flex-direction: column;
+        }
+        .profile-trigger:hover + .sidebar-right,
+        .sidebar-right:hover {
+            right: 0;
+        }
+        .sidebar-right .sidebar-header {
+            padding: 24px 20px 16px 20px;
+            border-bottom: 1px solid #333;
+        }
+        .sidebar-right .sidebar-logo {
+            font-size: 2rem;
+            margin-right: 10px;
+        }
+        .sidebar-right .sidebar-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        .sidebar-right .sidebar-nav {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex: 1;
+        }
+        .sidebar-right .sidebar-nav li {
+            margin: 0;
+        }
+        .sidebar-right .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            padding: 16px 24px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 1.08rem;
+            transition: background 0.2s, color 0.2s;
+            border-left: 4px solid transparent;
+        }
+        .sidebar-right .sidebar-nav a:hover, .sidebar-right .sidebar-nav a:focus {
+            background: #313335;
+            color: #4fc3f7;
+            border-left: 4px solid #4fc3f7;
+        }
+        @media (max-width: 900px) {
+            .sidebar-right {
+                width: 98vw;
+                min-width: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <span class="sidebar-logo">🛒</span>
+            <span class="sidebar-title">Customer Panel</span>
+        </div>
+        <ul class="sidebar-nav">
+            <li><a href="#products-section" class="active"><span class="sidebar-icon">📦</span> Products</a></li>
+            <li><a href="/customer/orders/{{ customer_id }}"><span class="sidebar-icon">🧾</span> My Orders</a></li>
+        </ul>
+        <div style="position:absolute;bottom:24px;left:0;width:100%;text-align:center;">
+            <a href="/customer/settings/{{ customer_id }}" class="primary-btn" style="width:80%;margin:auto;display:inline-block;">⚙️ Settings</a>
+        </div>
+    </div>
+    <div class="dashboard-container">
+        <div class="dashboard-header" style="display:flex;justify-content:space-between;align-items:center;">
+            <h1>Welcome, <span>{{ customer_name }}</span></h1>
+            <form id="delete-account-form" method="POST" action="/customer/delete/{{ customer_id }}" style="margin:0; display:none;">
+                <button type="button" id="delete-account-btn" class="danger-btn">Delete Account</button>
+            </form>
+        </div>
+        <h2 id="products-section" style="margin-top:32px;">Products</h2>
+        <div>
+            {% for product in products %}
+            <div class="product-card">
+                <div class="product-info">
+                    <div style="font-size:1.2em;font-weight:600;">{{ product.ProductName }}</div>
+                    <div style="color:#888;font-size:0.98em;">Code: {{ product.ProductCode }}</div>
+                    <div style="margin:6px 0;">Price: <b>₹{{ product.UnitPrice }}</b> | Available: <b>{{ product.QuantityPerUnit }}</b></div>
+                    <div class="product-status {% if product.QuantityPerUnit|int == 0 %}unavailable{% endif %}">
+                        {% if product.QuantityPerUnit|int > 0 %}Available{% else %}Unavailable{% endif %}
+                    </div>
+                </div>
+                <div class="product-actions">
+                    {% if product.QuantityPerUnit|int > 0 %}
+                    <form class="order-form" method="POST" action="/customer/order?customer_id={{ customer_id }}">
+                        <input type="hidden" name="product_id" value="{{ product.ProductID }}">
+                        <input type="number" name="quantity" min="1" max="{{ product.QuantityPerUnit }}" value="1" required>
+                        <button type="submit" class="primary-btn">Buy Now</button>
+                    </form>
+                    {% else %}
+                    <button type="button" class="danger-btn" disabled>Order</button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <button id="darkModeToggle" style="position:fixed;bottom:24px;right:24px;z-index:2000;background:#232526;color:#fff;border:none;border-radius:50%;width:44px;height:44px;box-shadow:0 2px 8px rgba(0,0,0,0.12);font-size:1.3em;cursor:pointer;transition:background 0.2s;" title="Toggle dark mode">🌙</button>
+    <script>
+    document.getElementById('delete-account-btn').onclick = function() {
+        if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+            document.getElementById('delete-account-form').submit();
+        }
+    };
+    // Show alert if order was successful
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === '1') {
+        alert('Order placed successfully!');
+    }
+    // Dark mode toggle
+    const darkModeBtn = document.getElementById('darkModeToggle');
+    function setDarkMode(on) {
+        if(on) {
+            document.body.classList.add('dark-mode');
+            localStorage.setItem('darkMode', '1');
+            darkModeBtn.textContent = '☀️';
+        } else {
+            document.body.classList.remove('dark-mode');
+            localStorage.setItem('darkMode', '0');
+            darkModeBtn.textContent = '🌙';
+        }
+    }
+    darkModeBtn.onclick = function() {
+        setDarkMode(!document.body.classList.contains('dark-mode'));
+    };
+    // On load, set mode from localStorage or user default
+    {% if default_dark_mode %}
+    setDarkMode(true);
+    {% else %}
+    setDarkMode(localStorage.getItem('darkMode') === '1');
+    {% endif %}
+
+    // Delete account link triggers form
+    document.getElementById('delete-account-link').onclick = function(e) {
+        e.preventDefault();
+        document.getElementById('delete-account-btn').click();
+    };
+    </script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Deleted</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        .deleted-card {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+            padding: 32px 28px;
+            max-width: 420px;
+            margin: 80px auto 0 auto;
+            text-align: center;
+        }
+        .deleted-card h1 {
+            color: #e53935;
+            font-size: 2.2em;
+            margin-bottom: 18px;
+        }
+        .deleted-card p {
+            color: #888;
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="deleted-card">
+        <h1>Account Deleted</h1>
+        {% if success == '1' %}
+        <p>Your account has been deleted successfully.</p>
+        {% else %}
+        <p>There was a problem deleting your account.</p>
+        {% endif %}
+        <a href="/" class="primary-btn">Go to Home</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        .section-card {
+            background: #f7fafd;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            padding: 28px 32px 32px 32px;
+            margin-bottom: 32px;
+        }
+        .section-title {
+            color: #0288d1;
+            font-size: 1.4em;
+            margin-bottom: 18px;
+            font-weight: 600;
+        }
+        .dashboard-header h1 {
+            color: #0288d1;
+            font-size: 2em;
+            font-weight: 700;
+            margin-bottom: 0.5em;
+        }
+        .dashboard-header {
+            margin-bottom: 24px;
+        }
+        @media (max-width: 700px) {
+            .section-card { padding: 10px 2vw; }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <span class="sidebar-logo">🛒</span>
+            <span class="sidebar-title">Customer Panel</span>
+        </div>
+        <ul class="sidebar-nav">
+            <li><a href="/customer/dashboard/{{ customer_id }}"><span class="sidebar-icon">📦</span> Products</a></li>
+            <li><a href="/customer/orders/{{ customer_id }}" class="active"><span class="sidebar-icon">🧾</span> My Orders</a></li>
+        </ul>
+    </div>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1>My Orders</h1>
+        </div>
+        <div class="section-card">
+            <div class="section-title">Order History</div>
+            {% if orders and orders|length > 0 %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Order Date</th>
+                        <th>Status</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>{{ order.OrderID or order.id }}</td>
+                        <td>{{ order.OrderDate or order.date }}</td>
+                        <td>{{ order.Status or order.status }}</td>
+                        <td><a href="/customer/order/{{ order.OrderID or order.id }}" class="primary-btn">View Details</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="text-align:center; color:#e53935;">No orders found.</p>
+            {% endif %}
+        </div>
+    </div>
+    <button id="darkModeToggle" style="position:fixed;bottom:24px;right:24px;z-index:2000;background:#232526;color:#fff;border:none;border-radius:50%;width:44px;height:44px;box-shadow:0 2px 8px rgba(0,0,0,0.12);font-size:1.3em;cursor:pointer;transition:background 0.2s;" title="Toggle dark mode">🌙</button>
+    <script>
+    // Dark mode toggle
+    const darkModeBtn = document.getElementById('darkModeToggle');
+    function setDarkMode(on) {
+        if(on) {
+            document.body.classList.add('dark-mode');
+            localStorage.setItem('darkMode', '1');
+            darkModeBtn.textContent = '☀️';
+        } else {
+            document.body.classList.remove('dark-mode');
+            localStorage.setItem('darkMode', '0');
+            darkModeBtn.textContent = '🌙';
+        }
+    }
+    darkModeBtn.onclick = function() {
+        setDarkMode(!document.body.classList.contains('dark-mode'));
+    };
+    // On load, set mode from localStorage or user default
+    {% if default_dark_mode %}
+    setDarkMode(true);
+    {% else %}
+    setDarkMode(localStorage.getItem('darkMode') === '1');
+    {% endif %}
+    </script>
+</body>
+</html>

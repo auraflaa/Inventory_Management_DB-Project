@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        .login-card {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+            padding: 32px 28px;
+            max-width: 400px;
+            margin: 60px auto 0 auto;
+        }
+        .login-card h1 {
+            color: #0288d1;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h1>Customer Login</h1>
+        <form method="POST" action="/customer/login">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            <button type="submit">Login</button>
+        </form>
+        {% if error %}<div style="color:#e53935; margin-top:12px; text-align:center;">{{ error }}</div>{% endif %}
+        <div class="options">
+            <a href="/customer/signup">Don't have an account? Sign Up</a>
+            <a href="/admin/login" style="margin-left:18px;">Admin Login</a>
+        </div>
+    </div>
+</body>
+</html>

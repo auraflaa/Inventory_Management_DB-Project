@@ -1,0 +1,494 @@
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f9;
+    color: #333;
+}
+
+h1, h2 {
+    text-align: center;
+    color: #444;
+}
+
+/* Login Container */
+.login-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.login-container form {
+    display: flex;
+    flex-direction: column;
+}
+
+.login-container label {
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.login-container input {
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.login-container button {
+    padding: 10px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.login-container button:hover {
+    background-color: #0056b3;
+}
+
+/* Dashboard Container */
+.dashboard-container {
+    margin-left: 240px;
+    max-width: 900px;
+    padding: 32px 32px 32px 32px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    margin-top: 32px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    background: #fafbfc;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+table th, table td {
+    border: 1px solid #ddd;
+    padding: 12px 10px;
+    text-align: left;
+}
+
+table th {
+    background: #e3e8ee;
+    color: #333;
+    font-weight: bold;
+}
+
+table tr:nth-child(even) {
+    background: #f7fafd;
+}
+
+button, input[type="submit"] {
+    background: #4fc3f7;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+button:hover, input[type="submit"]:hover {
+    background: #0288d1;
+}
+
+label {
+    font-weight: 500;
+    margin-top: 8px;
+}
+
+input, select {
+    padding: 8px;
+    border: 1px solid #b0bec5;
+    border-radius: 4px;
+    margin-bottom: 12px;
+    width: 100%;
+    font-size: 1rem;
+}
+
+.modal-content {
+    border-radius: 8px;
+    padding: 24px;
+}
+
+.close {
+    color: #888;
+    float: right;
+    font-size: 1.5rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: #e53935;
+}
+
+/* Sidebar Styles */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 220px;
+    height: 100vh;
+    background: linear-gradient(135deg, #232526 0%, #414345 100%);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.07);
+    z-index: 1000;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    padding: 24px 20px 16px 20px;
+    border-bottom: 1px solid #333;
+}
+
+.sidebar-logo {
+    font-size: 2rem;
+    margin-right: 10px;
+}
+
+.sidebar-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.sidebar-nav {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex: 1;
+}
+
+.sidebar-nav li {
+    margin: 0;
+}
+
+.sidebar-nav a {
+    display: flex;
+    align-items: center;
+    padding: 16px 24px;
+    color: #fff;
+    text-decoration: none;
+    font-size: 1.08rem;
+    transition: background 0.2s, color 0.2s;
+    border-left: 4px solid transparent;
+}
+
+.sidebar-nav a:hover, .sidebar-nav a:focus {
+    background: #313335;
+    color: #4fc3f7;
+    border-left: 4px solid #4fc3f7;
+}
+
+.sidebar-icon {
+    margin-right: 12px;
+    font-size: 1.2rem;
+}
+
+/* Card Style for Forms and Containers */
+.card-style {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    padding: 32px 28px;
+    margin: 40px auto;
+    max-width: 420px;
+}
+
+/* Signup Container */
+.signup-container {
+    max-width: 420px;
+    margin: 50px auto;
+    padding: 20px;
+}
+
+/* Button Styles */
+.primary-btn {
+    background: #4fc3f7;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 22px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+    display: inline-block;
+}
+.primary-btn:hover {
+    background: #0288d1;
+}
+.secondary-btn {
+    background: #e0e0e0;
+    color: #333;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 22px;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-left: 10px;
+    text-decoration: none;
+    display: inline-block;
+}
+.secondary-btn:hover {
+    background: #bdbdbd;
+}
+.danger-btn {
+    background: #e53935;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 22px;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-left: 10px;
+    text-decoration: none;
+    display: inline-block;
+}
+.danger-btn:hover {
+    background: #b71c1c;
+}
+
+/* Options Section for Links */
+.options {
+    margin-top: 18px;
+    text-align: center;
+}
+.options a {
+    color: #0288d1;
+    margin: 0 10px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+.options a:hover {
+    color: #01579b;
+}
+
+/* Responsive Design */
+@media (max-width: 900px) {
+    .dashboard-container {
+        margin-left: 0;
+        max-width: 98vw;
+        padding: 16px 4vw;
+    }
+    .sidebar {
+        position: static;
+        width: 100%;
+        height: auto;
+        flex-direction: row;
+        box-shadow: none;
+    }
+    .sidebar-header {
+        padding: 12px 10px 8px 10px;
+    }
+    .sidebar-nav a {
+        padding: 10px 12px;
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .card-style, .login-container, .signup-container {
+        padding: 12px 4vw;
+        max-width: 98vw;
+    }
+    table th, table td {
+        padding: 8px 4px;
+        font-size: 0.95rem;
+    }
+}
+
+/* Uniform and Accessible Dark Mode Styles */
+body.dark-mode {
+    background-color: #181c20;
+    color: #e3e6eb;
+}
+body.dark-mode .dashboard-container,
+body.dark-mode .card-style,
+body.dark-mode .section-card,
+body.dark-mode .signup-card,
+body.dark-mode .login-card,
+body.dark-mode .notfound-card,
+body.dark-mode .deleted-card,
+body.dark-mode .edit-card,
+body.dark-mode .update-card,
+body.dark-mode .settings-card {
+    background: #23272e;
+    color: #e3e6eb;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+body.dark-mode table {
+    background: #23272e;
+    color: #e3e6eb;
+}
+body.dark-mode table th {
+    background: #23272e;
+    color: #aee2ff;
+    border-bottom: 1px solid #2d323a;
+    font-weight: bold;
+}
+body.dark-mode table td {
+    background: #16213a;
+    color: #e0e6ed;
+    border-color: #23272e;
+}
+body.dark-mode .sidebar {
+    background: linear-gradient(135deg, #20242a 0%, #23272e 100%);
+    color: #aee2ff;
+}
+body.dark-mode .sidebar-header,
+body.dark-mode .sidebar-title,
+body.dark-mode .sidebar-logo {
+    color: #ffe082;
+}
+body.dark-mode .sidebar-nav a {
+    color: #aee2ff;
+    background: transparent;
+}
+body.dark-mode .sidebar-nav a:hover, body.dark-mode .sidebar-nav a:focus, body.dark-mode .sidebar-nav a.active {
+    background: #23272e;
+    color: #4fc3f7;
+    border-left: 4px solid #4fc3f7;
+}
+body.dark-mode input, body.dark-mode select, body.dark-mode textarea {
+    background: #23272e;
+    color: #e3e6eb;
+    border: 1px solid #2d323a;
+}
+body.dark-mode label {
+    color: #aee2ff;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+    margin-top: 12px;
+    text-align: left;
+}
+body.dark-mode .primary-btn {
+    background: #3bb2f6;
+    color: #fff;
+    font-weight: bold;
+}
+body.dark-mode .primary-btn:hover {
+    background: #7fd7ff;
+    color: #23272e;
+}
+body.dark-mode .danger-btn {
+    background: #c44545;
+    color: #fff;
+    font-weight: bold;
+}
+body.dark-mode .danger-btn:hover {
+    background: #ff6b6b;
+}
+body.dark-mode .secondary-btn {
+    background: #23272e;
+    color: #aee2ff;
+    border: 1px solid #2d323a;
+}
+body.dark-mode .secondary-btn:hover {
+    background: #2d323a;
+}
+body.dark-mode .options a {
+    color: #7fd7ff;
+    font-weight: 600;
+}
+body.dark-mode .options a:hover {
+    color: #aee2ff;
+}
+body.dark-mode hr {
+    border-color: #2d323a;
+}
+body.dark-mode h1, body.dark-mode h2, body.dark-mode h3, body.dark-mode .section-title {
+    color: #aee2ff;
+    letter-spacing: 0.5px;
+    font-weight: bold;
+}
+body.dark-mode .product-status {
+    color: #7fd7ff;
+}
+body.dark-mode .product-status.unavailable {
+    color: #e57373;
+}
+body.dark-mode .dashboard-header,
+body.dark-mode .section-title {
+    background: transparent;
+    color: #aee2ff;
+}
+body.dark-mode .add-form {
+    background: #23272e;
+    color: #e3e6eb;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+}
+body.dark-mode .cart-total {
+    color: #aee2ff;
+}
+body.dark-mode .notfound-card,
+body.dark-mode .deleted-card {
+    background: #23272e;
+    color: #aee2ff;
+}
+body.dark-mode .options a,
+body.dark-mode .options a:visited {
+    color: #7fd7ff;
+}
+body.dark-mode .options a:hover {
+    color: #aee2ff;
+}
+body.dark-mode .cart-actions button,
+body.dark-mode .cart-actions .primary-btn {
+    background: #3bb2f6;
+    color: #fff;
+}
+body.dark-mode .cart-actions .primary-btn:hover {
+    background: #7fd7ff;
+    color: #23272e;
+}
+body.dark-mode .product-card {
+    background: #23272e !important;
+    color: #e3e6eb !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+body.dark-mode .product-card input,
+body.dark-mode .product-card select {
+    background: #23272e;
+    color: #e3e6eb;
+    border: 1px solid #2d323a;
+}
+body.dark-mode .product-card .primary-btn {
+    background: #3bb2f6;
+    color: #fff;
+}
+body.dark-mode .product-card .primary-btn:hover {
+    background: #7fd7ff;
+    color: #23272e;
+}
+body.dark-mode .product-card .danger-btn {
+    background: #c44545;
+    color: #fff;
+}
+body.dark-mode .product-card .danger-btn:hover {
+    background: #ff6b6b;
+}
+body.dark-mode .product-card .product-status {
+    color: #7fd7ff;
+}
+body.dark-mode .product-card .product-status.unavailable {
+    color: #e57373;
+}
