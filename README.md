@@ -135,5 +135,5 @@ This project is open-source and available under the [MIT License](LICENSE).
 
 - **Author**: Priyangshu  
 - **GitHub**: [auraflaa](https://github.com/auraflaa)  
-- **Email**: [Priyangshu's Email](priyangshumukherjee07@gmail.com)  
+- **Email**: priyangshumukherjee07@gmail.com 
 - **LinkedIn**: [Priyangshu Mukherjee](https://www.linkedin.com/in/priyangshu-mukherjee/)
