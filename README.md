@@ -29,7 +29,7 @@ Built for academic and practical learning purposes, this system offers a realist
 
 ## Technologies Used
 
-- **Frontend**: [Specify if applicable, e.g., HTML/CSS, Bootstrap]
+- **Frontend**: HTML, CSS, JS
 - **Backend**: Python with Flask
 - **Database**: MySQL (connected via SQLAlchemy and Flask-MySQLAlchemy)
 - **Development Environment**: Python virtual environments (`venv`)
