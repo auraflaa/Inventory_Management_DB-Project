@@ -1,7 +1,7 @@
 CREATE DATABASE IF NOT EXISTS inventory_management;
 USE inventory_management;
+ALTER TABLE Customers ADD COLUMN DefaultDarkMode BOOLEAN DEFAULT 0;
 
--- Products Table
 CREATE TABLE Products (
     ProductID INT PRIMARY KEY AUTO_INCREMENT,
     ProductName VARCHAR(255) NOT NULL,
@@ -49,21 +49,21 @@ CREATE TABLE AdminUsers (
     Username VARCHAR(255) UNIQUE NOT NULL,
     PasswordHash VARCHAR(255) NOT NULL,
     EmployeeID INT NULL,
-    FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID) ON DELETE SET NULL
+    FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID)
 );
 
 -- Order System
 CREATE TABLE Orders (
     OrderID INT PRIMARY KEY AUTO_INCREMENT,
-    EmployeeID INT NULL,
+    EmployeeID INT,
     CustomerID INT NOT NULL,
     OrderDate DATETIME DEFAULT CURRENT_TIMESTAMP,
     ShippedDate DATETIME,
     OrderStatusID INT NOT NULL,
     PaymentMethod VARCHAR(50),
-    FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID) ON DELETE SET NULL,
-    FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID) ON DELETE CASCADE,
-    FOREIGN KEY (OrderStatusID) REFERENCES OrderStatus(OrderStatusID) ON DELETE RESTRICT
+    FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID),
+    FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID),
+    FOREIGN KEY (OrderStatusID) REFERENCES OrderStatus(OrderStatusID)
 );
 
 CREATE TABLE OrderDetails (
@@ -73,8 +73,8 @@ CREATE TABLE OrderDetails (
     Quantity INT NOT NULL,
     UnitPrice DECIMAL(10,2),
     Discount DECIMAL(5,2) DEFAULT 0,
-    FOREIGN KEY (OrderID) REFERENCES Orders(OrderID) ON DELETE CASCADE,
-    FOREIGN KEY (ProductID) REFERENCES Products(ProductID) ON DELETE RESTRICT
+    FOREIGN KEY (OrderID) REFERENCES Orders(OrderID),
+    FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
 );
 
 -- Vendor Relationships
@@ -82,8 +82,8 @@ CREATE TABLE ProductVendors (
     ProductVendorID INT PRIMARY KEY AUTO_INCREMENT,
     ProductID INT NOT NULL,
     VendorID INT NOT NULL,
-    FOREIGN KEY (ProductID) REFERENCES Products(ProductID) ON DELETE CASCADE,
-    FOREIGN KEY (VendorID) REFERENCES Companies(CompanyID) ON DELETE CASCADE
+    FOREIGN KEY (ProductID) REFERENCES Products(ProductID),
+    FOREIGN KEY (VendorID) REFERENCES Companies(CompanyID)
 );
 
 -- Purchase Orders
@@ -95,10 +95,10 @@ CREATE TABLE PurchaseOrders (
     OrderDate DATETIME DEFAULT CURRENT_TIMESTAMP,
     StatusID INT NOT NULL,
     PaymentMethod VARCHAR(50),
-    FOREIGN KEY (VendorID) REFERENCES Companies(CompanyID) ON DELETE CASCADE,
-    FOREIGN KEY (SubmittedBy) REFERENCES Employees(EmployeeID) ON DELETE CASCADE,
-    FOREIGN KEY (ApprovedBy) REFERENCES Employees(EmployeeID) ON DELETE SET NULL,
-    FOREIGN KEY (StatusID) REFERENCES OrderStatus(OrderStatusID) ON DELETE RESTRICT
+    FOREIGN KEY (VendorID) REFERENCES Companies(CompanyID),
+    FOREIGN KEY (SubmittedBy) REFERENCES Employees(EmployeeID),
+    FOREIGN KEY (ApprovedBy) REFERENCES Employees(EmployeeID),
+    FOREIGN KEY (StatusID) REFERENCES OrderStatus(OrderStatusID)
 );
 
 CREATE TABLE PurchaseOrderDetails (
@@ -108,6 +108,7 @@ CREATE TABLE PurchaseOrderDetails (
     Quantity INT NOT NULL,
     UnitCost DECIMAL(10,2),
     ReceivedDate DATETIME,
-    FOREIGN KEY (PurchaseOrderID) REFERENCES PurchaseOrders(PurchaseOrderID) ON DELETE CASCADE,
-    FOREIGN KEY (ProductID) REFERENCES Products(ProductID) ON DELETE RESTRICT
+    FOREIGN KEY (PurchaseOrderID) REFERENCES PurchaseOrders(PurchaseOrderID),
+    FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
 );
+

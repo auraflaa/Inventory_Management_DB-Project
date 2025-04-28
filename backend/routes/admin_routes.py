@@ -77,16 +77,26 @@ def admin_dashboard():
         pcode = request.form.get('product_code')
         uprice = request.form.get('unit_price')
         qty = request.form.get('quantity_per_unit')
-        vendor_id = request.form.get('vendor_id')
-        if pname and pcode and uprice and qty and vendor_id:
-            new_product = Product(ProductName=pname, ProductCode=pcode, UnitPrice=uprice, QuantityPerUnit=qty)
-            db.session.add(new_product)
-            db.session.flush()  # Get ProductID
-            # Link product to vendor (VendorID only)
-            product_vendor = ProductVendor(ProductID=new_product.ProductID, VendorID=vendor_id)
-            db.session.add(product_vendor)
-            db.session.commit()
+        company_id = request.form.get('company_id')
+        error_message = None
+        if pname and pcode and uprice and qty and company_id:
+            from sqlalchemy.exc import IntegrityError
+            try:
+                new_product = Product(ProductName=pname, ProductCode=pcode, UnitPrice=uprice, QuantityPerUnit=qty)
+                db.session.add(new_product)
+                db.session.flush()  # Get ProductID
+                # Link product to company (as VendorID)
+                product_vendor = ProductVendor(ProductID=new_product.ProductID, VendorID=company_id)
+                db.session.add(product_vendor)
+                db.session.commit()
+            except IntegrityError as e:
+                db.session.rollback()
+                if 'Duplicate entry' in str(e.orig):
+                    error_message = 'Product code already exists. Please use a unique product code.'
+                else:
+                    error_message = 'Failed to add product. Please check your input.'
         products = get_all_products()
+        return render_template('admin_dashboard.html', products=products, companies=companies, error_message=error_message)
     return render_template('admin_dashboard.html', products=products, companies=companies)
 
 @admin_blueprint.route('/dashboard/edit-product/<int:product_id>', methods=['GET', 'POST'])
@@ -129,6 +139,35 @@ def admin_view_customer():
                 } for o in orders
             ]
     return render_template('admin_customers.html', customers=customers, selected_customer=selected_customer, customer_orders=customer_orders)
+
+@admin_blueprint.route('/customers/order-details/<int:order_id>', methods=['GET'])
+def admin_order_details(order_id):
+    from models.order import Order
+    from models.order_detail import OrderDetail
+    from models.product import Product
+    from models.company import Company
+    from models.product_vendor import ProductVendor
+    order = Order.query.get_or_404(order_id)
+    order_details = OrderDetail.query.filter_by(OrderID=order_id).all()
+    detailed_products = []
+    for detail in order_details:
+        product = Product.query.get(detail.ProductID)
+        vendor_name = 'N/A'
+        company_name = 'N/A'
+        product_vendor = ProductVendor.query.filter_by(ProductID=product.ProductID).first() if product else None
+        if product_vendor:
+            company = Company.query.get(product_vendor.VendorID)
+            if company:
+                vendor_name = company.CompanyName
+                company_name = company.CompanyName
+        detailed_products.append({
+            'ProductName': product.ProductName if product else 'N/A',
+            'CompanyName': company_name,
+            'VendorName': vendor_name,
+            'Quantity': detail.Quantity,
+            'UnitPrice': detail.UnitPrice
+        })
+    return render_template('admin_order_details.html', order=order, products=detailed_products)
 
 @admin_blueprint.route('/vendors', methods=['GET', 'POST'])
 def admin_vendors():

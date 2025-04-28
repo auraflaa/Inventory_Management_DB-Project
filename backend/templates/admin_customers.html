@@ -90,6 +90,7 @@
                         <th>Order ID</th>
                         <th>Status</th>
                         <th>Order Date</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -98,6 +99,9 @@
                         <td>{{ order.id }}</td>
                         <td>{{ order.status }}</td>
                         <td>{{ order.date }}</td>
+                        <td>
+                            <a href="/admin/customers/order-details/{{ order.id }}" class="primary-btn">View Details</a>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
