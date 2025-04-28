@@ -81,7 +81,7 @@ Built for academic and practical learning purposes, this system offers a realist
 ### For Admin
 1. Start the server:
    ```bash
-   python app.py
+   flask run
    ```
 2. Access the admin panel:
    ```
