@@ -116,14 +116,12 @@ def customer_signup():
         Email=email,
         Phone=phone,
         PasswordHash=password  # Store as plain text
-    )
-
-    # Save the customer to the database
+    )    # Save the customer to the database
     db.session.add(new_customer)
     db.session.commit()
 
-    # Redirect to the customer dashboard after successful signup
-    return redirect(url_for('customer.customer_dashboard', customer_id=new_customer.CustomerID))
+    # Redirect to the login page after successful signup
+    return redirect(url_for('home'))
 
 @customer_blueprint.route('/signup', methods=['GET'])
 def customer_signup_get():
@@ -284,3 +282,10 @@ def update_account(customer_id):
         db.session.commit()
         return redirect(url_for('customer.customer_settings', customer_id=customer_id))
     return render_template('customer_update_account.html', customer=customer)
+
+@customer_blueprint.route('/signout')
+def customer_signout():
+    # Clear any session data if needed
+    session.clear()
+    # Render the signout page
+    return render_template('customer_signout.html')

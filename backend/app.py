@@ -6,6 +6,8 @@ app = Flask(__name__)
 CORS(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Pritam@127.0.0.1/inventory_management'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# Set the secret key to enable session management
+app.config['SECRET_KEY'] = 'your-secret-key-123'  # In production, use a secure random key
 
 from models import db
 
