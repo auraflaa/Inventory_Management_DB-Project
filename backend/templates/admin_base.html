@@ -16,8 +16,8 @@
         <div class="admin-sidebar-header">
             <span class="admin-sidebar-logo">🛒</span>
             <span class="admin-sidebar-title">Admin Panel</span>
-        </div>
-        <ul class="admin-sidebar-nav">            <li><a href="/admin/dashboard" {% if request.endpoint == 'admin.admin_dashboard' %}class="active"{% endif %}><span class="admin-icon">📦</span> Products</a></li>
+        </div>        <ul class="admin-sidebar-nav">            <li><a href="/admin/dashboard" {% if request.endpoint == 'admin.admin_dashboard' %}class="active"{% endif %}><span class="admin-icon">📦</span> Products</a></li>
+            <li><a href="/admin/orders" {% if request.endpoint == 'admin.admin_orders' %}class="active"{% endif %}><span class="admin-icon">🧾</span> Orders</a></li>
             <li><a href="/admin/customers" {% if request.endpoint == 'admin.admin_customers' %}class="active"{% endif %}><span class="admin-icon">👥</span> Customers</a></li>
             <li><a href="/admin/companies" {% if request.endpoint == 'admin.admin_companies' %}class="active"{% endif %}><span class="admin-icon">🏭</span> Companies</a></li>
         </ul>

@@ -1,41 +1,89 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Product</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <style>
-        .edit-card {
-            background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-            padding: 32px 28px;
-            max-width: 420px;
-            margin: 60px auto 0 auto;
-        }
-        .edit-card h1 {
-            color: #0288d1;
-            text-align: center;
-            margin-bottom: 24px;
-        }
-    </style>
-</head>
-<body>
-    <div class="edit-card">
-        <h1>Edit Product</h1>
-        <form method="POST">
-            <label for="product_name">Product Name:</label>
+{% extends "admin_base.html" %}
+
+{% block title %}Edit Product{% endblock %}
+
+{% block header %}Edit Product{% endblock %}
+
+{% block content %}
+<div class="admin-section-card">
+    <div class="admin-section-title">Edit Product Details</div>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <form class="admin-form" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        
+        <div class="admin-form-group">
+            <label for="product_name">Product Name</label>
             <input type="text" id="product_name" name="product_name" value="{{ product.ProductName }}" required>
-            <label for="product_code">Product Code:</label>
+        </div>
+
+        <div class="admin-form-group">
+            <label for="product_code">Product Code</label>
             <input type="text" id="product_code" name="product_code" value="{{ product.ProductCode }}" required>
-            <label for="unit_price">Unit Price:</label>
+        </div>
+
+        <div class="admin-form-group">
+            <label for="unit_price">Unit Price</label>
             <input type="number" step="0.01" id="unit_price" name="unit_price" value="{{ product.UnitPrice }}" required>
-            <label for="quantity_per_unit">Quantity Per Unit:</label>
+        </div>
+
+        <div class="admin-form-group">
+            <label for="quantity_per_unit">Quantity Per Unit</label>
             <input type="text" id="quantity_per_unit" name="quantity_per_unit" value="{{ product.QuantityPerUnit }}" required>
-            <button type="submit">Save Changes</button>
-            <a href="/admin/dashboard" class="secondary-btn">Cancel</a>
-        </form>
-    </div>
-</body>
-</html>
+        </div>
+
+        <div class="admin-form-actions">
+            <button type="submit" class="admin-button">
+                <span class="admin-icon">💾</span>
+                <span class="admin-button-text">Save Changes</span>
+            </button>
+            <a href="{{ url_for('admin.admin_dashboard') }}" class="admin-button secondary">
+                <span class="admin-icon">✖</span>
+                <span class="admin-button-text">Cancel</span>
+            </a>
+        </div>
+    </form>
+</div>
+
+<style>
+.alert {
+    padding: 12px 20px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.alert-error {
+    background-color: #ffebee;
+    color: #c62828;
+    border: 1px solid #ef5350;
+}
+
+.alert-success {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #66bb6a;
+}
+
+.admin-form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.admin-button.secondary {
+    background-color: #757575;
+}
+
+.admin-button.secondary:hover {
+    background-color: #616161;
+}
+</style>
+{% endblock %}

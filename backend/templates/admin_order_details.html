@@ -14,10 +14,24 @@
         <div class="admin-detail-group">
             <div class="admin-detail-label">Order Date:</div>
             <div class="admin-detail-value">{{ order.OrderDate.strftime('%Y-%m-%d') if order.OrderDate else '' }}</div>
-        </div>
-        <div class="admin-detail-group">
+        </div>        <div class="admin-detail-group">
             <div class="admin-detail-label">Status:</div>
-            <div class="admin-detail-value">{{ order_status.OrderStatusName }}</div>
+            <div class="admin-detail-value">
+                {% if order.OrderStatusID != 4 %}
+                <form method="POST" action="{{ url_for('admin.update_order_status', order_id=order.OrderID) }}" class="admin-inline-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <select name="status" class="status-select" onchange="this.form.submit()">
+                        {% for status in order_statuses %}
+                        <option value="{{ status.OrderStatusID }}" {% if status.OrderStatusID == order.OrderStatusID %}selected{% endif %}>
+                            {{ status.OrderStatusName }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </form>
+                {% else %}
+                    Delivered on {{ order.ShippedDate.strftime('%Y-%m-%d %H:%M') if order.ShippedDate else 'N/A' }}
+                {% endif %}
+            </div>
         </div>
         <div class="admin-detail-group">
             <div class="admin-detail-label">Payment Method:</div>
@@ -44,9 +58,66 @@
                     <td>{{ item.Quantity }}</td>
                     <td>${{ item.UnitPrice }}</td>
                     <td>{{ item.Discount }}</td>
+                </tr>                {% endfor %}
+                <tr class="admin-total-row">
+                    <td colspan="4" class="text-right"><strong>Total Amount:</strong></td>
+                    <td><strong>₹{{ "%.2f"|format(total_amount) }}</strong></td>
                 </tr>
-                {% endfor %}
             </tbody>
         </table>
     </div>
+
+    <div class="admin-actions">
+        <a href="{{ url_for('admin.admin_orders') }}" class="admin-button">
+            <span class="admin-icon">←</span>
+            Back to Orders
+        </a>
+    </div>
+
+<style>
+.admin-detail-group {
+    margin-bottom: 16px;
+}
+
+.admin-detail-label {
+    color: var(--admin-text-secondary);
+    font-size: 0.875rem;
+    margin-bottom: 4px;
+}
+
+.admin-detail-value {
+    color: var(--admin-text-primary);
+    font-weight: 500;
+}
+
+.admin-total-row {
+    background: var(--admin-surface) !important;
+    font-weight: 600;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.admin-actions {
+    margin-top: 24px;
+    display: flex;
+    gap: 12px;
+}
+
+.status-select {
+    padding: 6px 12px;
+    border: 1px solid var(--admin-border);
+    border-radius: 4px;
+    background: var(--admin-surface);
+    color: var(--admin-text-primary);
+    font-size: 0.875rem;
+    min-width: 150px;
+}
+
+.admin-inline-form {
+    display: inline-block;
+    margin: 0;
+}
+</style>
 {% endblock %}
