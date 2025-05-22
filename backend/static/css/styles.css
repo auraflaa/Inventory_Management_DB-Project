@@ -492,3 +492,126 @@ body.dark-mode .product-card .product-status {
 body.dark-mode .product-card .product-status.unavailable {
     color: #e57373;
 }
+
+/* Customer Dashboard Styles */
+.customer-settings-btn {
+    position: absolute;
+    bottom: 24px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+}
+
+.customer-settings-btn .primary-btn {
+    width: 80%;
+    margin: auto;
+    display: inline-block;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.delete-account-form {
+    margin: 0;
+}
+
+.products-section {
+    margin-top: 32px;
+}
+
+.product-name {
+    font-size: 1.2em;
+    font-weight: 600;
+}
+
+.product-code {
+    color: #888;
+    font-size: 0.98em;
+}
+
+.product-details {
+    margin: 6px 0;
+}
+
+.quantity-input {
+    width: 60px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-right: 8px;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #888;
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(79,195,247,0.2);
+    border-radius: 50%;
+    border-top-color: #4fc3f7;
+    animation: spin 1s ease-in-out infinite;
+    margin-bottom: 16px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .loading-spinner {
+        animation: none;
+    }
+}
+
+/* Dark mode styles for customer dashboard */
+body.dark-mode .product-code {
+    color: #94a3b8;
+}
+
+/* Dark mode toggle button */
+.dark-mode-toggle {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 2000;
+    background: #232526;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    font-size: 1.3em;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.dark-mode-toggle:hover {
+    transform: scale(1.1);
+}
+
+.dark-mode .dark-mode-toggle {
+    background: #4a5568;
+    color: #ffd700;
+}
+
+/* Accessibility helper */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}

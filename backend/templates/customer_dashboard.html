@@ -134,9 +134,32 @@
                 min-width: 0;
             }
         }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(79,195,247,0.2);
+            border-radius: 50%;
+            border-top-color: #4fc3f7;
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 16px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .loading-spinner {
+                animation: none;
+            }
+        }
     </style>
 </head>
-<body>
+<body class="{% if default_dark_mode %}dark-mode{% endif %}">
     <div class="sidebar">
         <div class="sidebar-header">
             <span class="sidebar-logo">🛒</span>
@@ -146,34 +169,50 @@
             <li><a href="#products-section" class="active"><span class="sidebar-icon">📦</span> Products</a></li>
             <li><a href="/customer/orders/{{ customer_id }}"><span class="sidebar-icon">🧾</span> My Orders</a></li>
         </ul>
-        <div style="position:absolute;bottom:24px;left:0;width:100%;text-align:center;">
-            <a href="/customer/settings/{{ customer_id }}" class="primary-btn" style="width:80%;margin:auto;display:inline-block;">⚙️ Settings</a>
+        <div class="customer-settings-btn">
+            <a href="/customer/settings/{{ customer_id }}" class="primary-btn">⚙️ Settings</a>
         </div>
     </div>
     <div class="dashboard-container">
-        <div class="dashboard-header" style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="dashboard-header">
             <h1>Welcome, <span>{{ customer_name }}</span></h1>
-            <form id="delete-account-form" method="POST" action="/customer/delete/{{ customer_id }}" style="margin:0; display:none;">
+            <form id="delete-account-form" class="delete-account-form" method="POST" action="/customer/delete/{{ customer_id }}">
                 <button type="button" id="delete-account-btn" class="danger-btn">Delete Account</button>
             </form>
         </div>
-        <h2 id="products-section" style="margin-top:32px;">Products</h2>
-        <div>
+        <h2 id="products-section" class="products-section">Products</h2>
+        <div id="products-container">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                <div>Loading products...</div>
+            </div>
             {% for product in products %}
             <div class="product-card">
                 <div class="product-info">
-                    <div style="font-size:1.2em;font-weight:600;">{{ product.ProductName }}</div>
-                    <div style="color:#888;font-size:0.98em;">Code: {{ product.ProductCode }}</div>
-                    <div style="margin:6px 0;">Price: <b>₹{{ product.UnitPrice }}</b> | Available: <b>{{ product.QuantityPerUnit }}</b></div>
+                    <div class="product-name">{{ product.ProductName }}</div>
+                    <div class="product-code">Code: {{ product.ProductCode }}</div>
+                    <div class="product-details">
+                        Price: <b>₹{{ product.UnitPrice }}</b> | Available: <b>{{ product.QuantityPerUnit }}</b>
+                    </div>
                     <div class="product-status {% if product.QuantityPerUnit|int == 0 %}unavailable{% endif %}">
                         {% if product.QuantityPerUnit|int > 0 %}Available{% else %}Unavailable{% endif %}
                     </div>
                 </div>
                 <div class="product-actions">
                     {% if product.QuantityPerUnit|int > 0 %}
-                    <form class="order-form" method="POST" action="/customer/order?customer_id={{ customer_id }}">
+                    <form class="order-form" method="POST" action="{{ url_for('customer.place_order', customer_id=customer_id) }}">
                         <input type="hidden" name="product_id" value="{{ product.ProductID }}">
-                        <input type="number" name="quantity" min="1" max="{{ product.QuantityPerUnit }}" value="1" required>
+                        <label for="quantity-{{ product.ProductID }}" class="visually-hidden">Quantity</label>
+                        <input type="number" 
+                               id="quantity-{{ product.ProductID }}"
+                               name="quantity"
+                               class="quantity-input"
+                               min="1"
+                               max="{{ product.QuantityPerUnit }}"
+                               value="1"
+                               required
+                               aria-label="Quantity to order"
+                               placeholder="Qty">
                         <button type="submit" class="primary-btn">Buy Now</button>
                     </form>
                     {% else %}
@@ -184,46 +223,54 @@
             {% endfor %}
         </div>
     </div>
-    <button id="darkModeToggle" style="position:fixed;bottom:24px;right:24px;z-index:2000;background:#232526;color:#fff;border:none;border-radius:50%;width:44px;height:44px;box-shadow:0 2px 8px rgba(0,0,0,0.12);font-size:1.3em;cursor:pointer;transition:background 0.2s;" title="Toggle dark mode">🌙</button>
+    <button id="darkModeToggle" class="dark-mode-toggle" title="Toggle dark mode">🌙</button>
     <script>
-    document.getElementById('delete-account-btn').onclick = function() {
-        if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-            document.getElementById('delete-account-form').submit();
+    document.addEventListener('DOMContentLoaded', function() {
+        // Remove loading state once products are loaded
+        const productsContainer = document.getElementById('products-container');
+        const loading = productsContainer.querySelector('.loading');
+        if (loading && productsContainer.children.length > 1) {
+            loading.remove();
         }
-    };
-    // Show alert if order was successful
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('success') === '1') {
-        alert('Order placed successfully!');
-    }
-    // Dark mode toggle
-    const darkModeBtn = document.getElementById('darkModeToggle');
-    function setDarkMode(on) {
-        if(on) {
-            document.body.classList.add('dark-mode');
-            localStorage.setItem('darkMode', '1');
-            darkModeBtn.textContent = '☀️';
-        } else {
-            document.body.classList.remove('dark-mode');
-            localStorage.setItem('darkMode', '0');
-            darkModeBtn.textContent = '🌙';
-        }
-    }
-    darkModeBtn.onclick = function() {
-        setDarkMode(!document.body.classList.contains('dark-mode'));
-    };
-    // On load, set mode from localStorage or user default
-    {% if default_dark_mode %}
-    setDarkMode(true);
-    {% else %}
-    setDarkMode(localStorage.getItem('darkMode') === '1');
-    {% endif %}
 
-    // Delete account link triggers form
-    document.getElementById('delete-account-link').onclick = function(e) {
-        e.preventDefault();
-        document.getElementById('delete-account-btn').click();
-    };
+        // Delete account confirmation
+        document.getElementById('delete-account-btn').onclick = function() {
+            if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                document.getElementById('delete-account-form').submit();
+            }
+        };
+
+        // Show success message for orders
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('success') === '1') {
+            alert('Order placed successfully!');
+        }
+
+        // Dark mode toggle
+        const darkModeBtn = document.getElementById('darkModeToggle');
+        function setDarkMode(on) {
+            if(on) {
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('darkMode', '1');
+                darkModeBtn.textContent = '☀️';
+            } else {
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('darkMode', '0');
+                darkModeBtn.textContent = '🌙';
+            }
+        }
+        
+        darkModeBtn.onclick = function() {
+            setDarkMode(!document.body.classList.contains('dark-mode'));
+        };
+
+        // Set initial dark mode state
+        {% if default_dark_mode %}
+            setDarkMode(true);
+        {% else %}
+            setDarkMode(localStorage.getItem('darkMode') === '1');
+        {% endif %}
+    });
     </script>
 </body>
 </html>

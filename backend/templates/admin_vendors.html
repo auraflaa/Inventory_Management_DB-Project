@@ -1,93 +1,64 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vendors Management</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <style>
-        .section-card {
-            background: #f7fafd;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-            padding: 28px 32px 32px 32px;
-            margin-bottom: 32px;
-        }
-        .section-title {
-            color: #0288d1;
-            font-size: 1.4em;
-            margin-bottom: 18px;
-            font-weight: 600;
-        }
-        .add-form {
-            background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-            padding: 24px 18px 18px 18px;
-            margin-bottom: 18px;
-        }
-        .add-form label {
-            margin-top: 8px;
-        }
-        .add-form input {
-            margin-bottom: 14px;
-        }
-        .dashboard-header h1 {
-            color: #0288d1;
-            font-size: 2em;
-            font-weight: 700;
-            margin-bottom: 0.5em;
-        }
-        .dashboard-header {
-            margin-bottom: 24px;
-        }
-        @media (max-width: 700px) {
-            .section-card, .add-form { padding: 10px 2vw; }
-        }
-    </style>
-</head>
-<body>
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <span class="sidebar-logo">🛒</span>
-            <span class="sidebar-title">Admin Panel</span>
-        </div>
-        <ul class="sidebar-nav">
-            <li><a href="/admin/dashboard"><span class="sidebar-icon">📦</span> Products</a></li>
-            <li><a href="/admin/customers"><span class="sidebar-icon">👥</span> Customers</a></li>
-            <li><a href="/admin/vendors" class="active"><span class="sidebar-icon">🏢</span> Vendors</a></li>
-            <li><a href="/admin/companies"><span class="sidebar-icon">🏭</span> Companies</a></li>
-        </ul>
+{% extends "admin_base.html" %}
+
+{% block title %}Admin Panel - Vendors{% endblock %}
+
+{% block header %}Vendor Management{% endblock %}
+
+{% block content %}
+    <div class="admin-section-card">
+        <div class="admin-section-title">All Vendors</div>
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Vendor Name</th>
+                    <th>Phone</th>
+                    <th>Address</th>
+                    <th>City</th>
+                    <th>State</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for vendor in vendors %}
+                <tr>
+                    <td>{{ vendor.CompanyName }}</td>
+                    <td>{{ vendor.BusinessPhone }}</td>
+                    <td>{{ vendor.Address }}</td>
+                    <td>{{ vendor.City }}</td>
+                    <td>{{ vendor.StateAbbrev }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-    <div class="dashboard-container">
-        <div class="dashboard-header">
-            <h1>Vendors</h1>
-        </div>
-        <div class="section-card">
-            <div class="section-title">Add Vendor</div>
-            <form class="add-form" method="POST">
-                <label for="vendor_name">Vendor Name:</label>
+    <div class="admin-section-card">
+        <div class="admin-section-title">Add Vendor</div>
+        <form class="admin-form" method="POST" action="{{ url_for('admin.admin_vendors') }}">
+            <div class="admin-form-group">
+                <label for="vendor_name">Vendor Name</label>
                 <input type="text" id="vendor_name" name="vendor_name" required>
-                <button type="submit">Add Vendor</button>
-            </form>
-        </div>
-        <div class="section-card">
-            <div class="section-title">All Vendors</div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Vendor Name</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for vendor in vendors %}
-                    <tr>
-                        <td>{{ vendor.VendorName }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+            </div>
+            <div class="admin-form-group">
+                <label for="vendor_phone">Phone</label>
+                <input type="text" id="vendor_phone" name="vendor_phone">
+            </div>
+            <div class="admin-form-group">
+                <label for="vendor_address">Address</label>
+                <input type="text" id="vendor_address" name="vendor_address">
+            </div>
+            <div class="admin-form-group">
+                <label for="vendor_city">City</label>
+                <input type="text" id="vendor_city" name="vendor_city">
+            </div>
+            <div class="admin-form-group">
+                <label for="vendor_state">State</label>
+                <input type="text" id="vendor_state" name="vendor_state">
+            </div>
+            <button type="submit" class="admin-button">
+                <span class="admin-icon">➕</span> Add Vendor
+            </button>
+        </form>
+        {% if message %}
+        <div class="admin-alert success">{{ message }}</div>
+        {% endif %}
     </div>
-</body>
-</html>
+{% endblock %}

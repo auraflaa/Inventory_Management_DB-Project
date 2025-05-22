@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Panel{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-styles.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <div class="admin-sidebar">
+        <div class="admin-sidebar-header">
+            <span class="admin-sidebar-logo">🛒</span>
+            <span class="admin-sidebar-title">Admin Panel</span>
+        </div>
+        <ul class="admin-sidebar-nav">            <li><a href="/admin/dashboard" {% if request.endpoint == 'admin.admin_dashboard' %}class="active"{% endif %}><span class="admin-icon">📦</span> Products</a></li>
+            <li><a href="/admin/customers" {% if request.endpoint == 'admin.admin_customers' %}class="active"{% endif %}><span class="admin-icon">👥</span> Customers</a></li>
+            <li><a href="/admin/companies" {% if request.endpoint == 'admin.admin_companies' %}class="active"{% endif %}><span class="admin-icon">🏭</span> Companies</a></li>
+        </ul>
+    </div>
+    
+    <div class="admin-content">
+        <div class="admin-header">
+            <h1>{% block header %}{% endblock %}</h1>
+        </div>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="admin-alert {{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </div>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>

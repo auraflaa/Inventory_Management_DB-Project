@@ -1,150 +1,133 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <style>
-        .section-card {
-            background: #f7fafd;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-            padding: 28px 32px 32px 32px;
-            margin-bottom: 32px;
-        }
-        .section-title {
-            color: #0288d1;
-            font-size: 1.4em;
-            margin-bottom: 18px;
-            font-weight: 600;
-        }
-        .add-form {
-            background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-            padding: 24px 18px 18px 18px;
-            margin-bottom: 18px;
-        }
-        .add-form label {
-            margin-top: 8px;
-        }
-        .add-form input, .add-form select {
-            margin-bottom: 14px;
-        }
-        .modal-content {
-            background: #f7fafd;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-        }
-        .dashboard-header h1 {
-            color: #0288d1;
-            font-size: 2em;
-            font-weight: 700;
-            margin-bottom: 0.5em;
-        }
-        .dashboard-header {
-            margin-bottom: 24px;
-        }
-        .product-actions button {
-            margin-right: 6px;
-        }
-        @media (max-width: 700px) {
-            .section-card, .add-form { padding: 10px 2vw; }
-        }
-    </style>
-</head>
-<body>
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <span class="sidebar-logo">🛒</span>
-            <span class="sidebar-title">Admin Panel</span>
-        </div>
-        <ul class="sidebar-nav">
-            <li><a href="/admin/dashboard"><span class="sidebar-icon">📦</span> Products</a></li>
-            <li><a href="/admin/customers"><span class="sidebar-icon">👥</span> Customers</a></li>
-            <li><a href="/admin/companies"><span class="sidebar-icon">🏭</span> Companies</a></li>
-        </ul>
+﻿{% extends "admin_base.html" %}
+
+{% block title %}Admin Dashboard - Products{% endblock %}
+
+{% block header %}Product Management{% endblock %}
+
+{% block content %}
+    <div class="admin-section-card">
+        <div class="admin-section-title">Products List</div>
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Product Code</th>
+                    <th>Unit Price</th>
+                    <th>Quantity Per Unit</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td>{{ product.ProductName }}</td>
+                    <td>{{ product.ProductCode }}</td>
+                    <td>${{ product.UnitPrice }}</td>
+                    <td>{{ product.QuantityPerUnit }}</td>
+                    <td class="admin-actions">
+                        <button type="button" class="admin-action-btn" onclick="openEditModal({{ product.ProductID }}, '{{ product.ProductName|escape }}', '{{ product.ProductCode|escape }}', '{{ product.UnitPrice }}', '{{ product.QuantityPerUnit|escape }}')">
+                            <span class="admin-icon"></span> Edit
+                        </button>
+                        <button type="button" class="admin-action-btn danger" onclick="deleteProduct({{ product.ProductID }})">
+                            <span class="admin-icon"></span> Delete
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-    <div class="dashboard-container">
-        <div class="dashboard-header">
-            <h1>Product Management</h1>
-        </div>
-        <div class="section-card">
-            <div class="section-title">Products</div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Product Name</th>
-                        <th>Product Code</th>
-                        <th>Unit Price</th>
-                        <th>Quantity Per Unit</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for product in products %}
-                    <tr>
-                        <td>{{ product.ProductName }}</td>
-                        <td>{{ product.ProductCode }}</td>
-                        <td>{{ product.UnitPrice }}</td>
-                        <td>{{ product.QuantityPerUnit }}</td>
-                        <td class="product-actions">
-                            <button type="button" onclick="openEditModal({{ product.ProductID }}, '{{ product.ProductName|escape }}', '{{ product.ProductCode|escape }}', '{{ product.UnitPrice }}', '{{ product.QuantityPerUnit|escape }}')">Edit</button>
-                            <button type="button" onclick="deleteProduct({{ product.ProductID }})" class="danger-btn">Delete</button>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <!-- Edit Product Modal -->
-        <div id="editProductModal" class="modal" style="display:none;">
-            <div class="modal-content">
-                <span class="close" onclick="closeEditModal()">&times;</span>
-                <h2>Edit Product</h2>
-                <form id="editProductForm" method="POST">
-                    <input type="hidden" id="edit_product_id" name="product_id">
-                    <label for="edit_product_name">Product Name:</label>
-                    <input type="text" id="edit_product_name" name="product_name" required>
-                    <label for="edit_product_code">Product Code:</label>
-                    <input type="text" id="edit_product_code" name="product_code" required>
-                    <label for="edit_unit_price">Unit Price:</label>
-                    <input type="number" step="0.01" id="edit_unit_price" name="unit_price" required>
-                    <label for="edit_quantity_per_unit">Quantity Per Unit:</label>
-                    <input type="text" id="edit_quantity_per_unit" name="quantity_per_unit" required>
-                    <button type="submit">Save Changes</button>
-                </form>
-            </div>
-        </div>
-        <div class="section-card">
-            <div class="section-title">Add Product</div>
-            <form class="add-form" method="POST" action="/admin/dashboard">
-                <input type="hidden" name="form_type" value="add_product">
-                <label for="product_name">Product Name:</label>
+
+    <div class="admin-section-card">
+        <div class="admin-section-title">Add New Product</div>
+        <form class="admin-form" method="POST" action="{{ url_for('admin.admin_dashboard') }}">
+            <input type="hidden" name="form_type" value="add_product">
+            
+            <div class="admin-form-group">
+                <label for="product_name">Product Name</label>
                 <input type="text" id="product_name" name="product_name" required>
-                <label for="product_code">Product Code:</label>
+            </div>
+
+            <div class="admin-form-group">
+                <label for="product_code">Product Code</label>
                 <input type="text" id="product_code" name="product_code" required>
-                <label for="unit_price">Unit Price:</label>
+            </div>
+
+            <div class="admin-form-group">
+                <label for="unit_price">Unit Price</label>
                 <input type="number" step="0.01" id="unit_price" name="unit_price" required>
-                <label for="quantity_per_unit">Quantity Per Unit:</label>
+            </div>
+
+            <div class="admin-form-group">
+                <label for="quantity_per_unit">Quantity Per Unit</label>
                 <input type="text" id="quantity_per_unit" name="quantity_per_unit" required>
-                <label for="company_id">Company:</label>
+            </div>
+
+            <div class="admin-form-group">
+                <label for="company_id">Company</label>
                 <select id="company_id" name="company_id" required>
                     <option value="">Select Company</option>
                     {% for company in companies %}
                         <option value="{{ company.CompanyID }}">{{ company.CompanyName }}</option>
                     {% endfor %}
                 </select>
-                <ul style="margin:0 0 10px 0; padding:0; list-style:none; color:#555; font-size:0.95em;">
-                    {% for company in companies %}
-                        <li>{{ company.CompanyName }}</li>
-                    {% endfor %}
-                </ul>
-                <button type="submit">Add Product</button>
+            </div>
+
+            <div class="admin-form-actions">
+                <button type="submit" class="admin-button">
+                    <span class="admin-icon"></span>
+                    <span class="admin-button-text">Add Product</span>
+                </button>
+            </div>
+            <div class="admin-form-message"></div>
+        </form>
+    </div>
+
+    <!-- Edit Product Modal -->
+    <div id="editProductModal" class="admin-modal">
+        <div class="admin-modal-content">
+            <div class="admin-modal-header">
+                <h2>Edit Product</h2>
+                <button class="admin-modal-close" onclick="closeEditModal()" aria-label="Close modal">
+                    <span class="admin-icon" aria-hidden="true">×</span>
+                </button>
+            </div>
+            
+            <form id="editProductForm" class="admin-form" method="POST">
+                <input type="hidden" id="edit_product_id" name="product_id">
+                
+                <div class="admin-form-group">
+                    <label for="edit_product_name">Product Name</label>
+                    <input type="text" id="edit_product_name" name="product_name" required>
+                </div>
+
+                <div class="admin-form-group">
+                    <label for="edit_product_code">Product Code</label>
+                    <input type="text" id="edit_product_code" name="product_code" required>
+                </div>
+
+                <div class="admin-form-group">
+                    <label for="edit_unit_price">Unit Price</label>
+                    <input type="number" step="0.01" id="edit_unit_price" name="unit_price" required>
+                </div>
+
+                <div class="admin-form-group">
+                    <label for="edit_quantity_per_unit">Quantity Per Unit</label>
+                    <input type="text" id="edit_quantity_per_unit" name="quantity_per_unit" required>
+                </div>
+
+                <div class="admin-form-actions">
+                    <button type="submit" class="admin-button">
+                        <span class="admin-icon"></span>
+                        <span class="admin-button-text">Save Changes</span>
+                    </button>
+                </div>
+                <div class="admin-form-message"></div>
             </form>
         </div>
-        <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
     </div>
-</body>
-</html>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% endblock %}

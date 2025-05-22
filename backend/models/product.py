@@ -7,6 +7,7 @@ class Product(db.Model):
     ProductCode = db.Column(db.String(50), unique=True)
     UnitPrice = db.Column(db.Numeric(10, 2))
     QuantityPerUnit = db.Column(db.String(50))
+    CompanyID = db.Column(db.Integer, db.ForeignKey('Companies.CompanyID', ondelete='CASCADE'), nullable=False)    # No need to define the relationship here since it's handled by the backref in Company model
 
     def to_dict(self):
         return {
@@ -14,5 +15,7 @@ class Product(db.Model):
             "ProductName": self.ProductName,
             "ProductCode": self.ProductCode,
             "UnitPrice": str(self.UnitPrice),
-            "QuantityPerUnit": self.QuantityPerUnit
+            "QuantityPerUnit": self.QuantityPerUnit,
+            "CompanyID": self.CompanyID,
+            "CompanyName": self.company.CompanyName if self.company else None
         }

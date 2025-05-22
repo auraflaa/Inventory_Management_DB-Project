@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-styles.css') }}">
     <style>
         .login-card {
             background: #fff;
@@ -24,14 +25,34 @@
 <body>
     <div class="login-card">
         <h1>Admin Login</h1>
-        <form method="POST">
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required>
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-            <button type="submit">Login</button>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="admin-alert {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <form method="POST" class="admin-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="admin-form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="admin-form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div class="admin-form-actions">
+                <button type="submit" class="admin-button">
+                    <span class="admin-icon">🔐</span>
+                    <span class="admin-button-text">Login</span>
+                </button>
+            </div>
+            {% if error %}
+            <div class="admin-form-message error">{{ error }}</div>
+            {% endif %}
         </form>
-        {% if error %}<div style="color:#e53935; margin-top:12px; text-align:center;">{{ error }}</div>{% endif %}
     </div>
 </body>
 </html>

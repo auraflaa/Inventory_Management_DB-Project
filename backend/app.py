@@ -1,13 +1,16 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
+from flask_wtf.csrf import CSRFProtect
 
 app = Flask(__name__)
 CORS(app)
+csrf = CSRFProtect(app)
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Pritam@127.0.0.1/inventory_management'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-# Set the secret key to enable session management
 app.config['SECRET_KEY'] = 'your-secret-key-123'  # In production, use a secure random key
+app.config['WTF_CSRF_TIME_LIMIT'] = 3600  # 1 hour CSRF token expiry
 
 from models import db
 

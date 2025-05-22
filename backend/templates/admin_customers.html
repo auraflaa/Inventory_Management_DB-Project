@@ -1,116 +1,81 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Customers</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <style>
-        .section-card {
-            background: #f7fafd;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-            padding: 28px 32px 32px 32px;
-            margin-bottom: 32px;
-        }
-        .section-title {
-            color: #0288d1;
-            font-size: 1.4em;
-            margin-bottom: 18px;
-            font-weight: 600;
-        }
-        .dashboard-header h1 {
-            color: #0288d1;
-            font-size: 2em;
-            font-weight: 700;
-            margin-bottom: 0.5em;
-        }
-        .dashboard-header {
-            margin-bottom: 24px;
-        }
-        @media (max-width: 700px) {
-            .section-card { padding: 10px 2vw; }
-        }
-    </style>
-</head>
-<body>
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <span class="sidebar-logo">🛒</span>
-            <span class="sidebar-title">Admin Panel</span>
-        </div>
-        <ul class="sidebar-nav">
-            <li><a href="/admin/dashboard"><span class="sidebar-icon">📦</span> Products</a></li>
-            <li><a href="/admin/customers"><span class="sidebar-icon">👥</span> Customers</a></li>
-        </ul>
+{% extends "admin_base.html" %}
+
+{% block title %}Admin Panel - Customers{% endblock %}
+
+{% block header %}Customer Management{% endblock %}
+
+{% block content %}
+<div class="section-card">
+    <div class="section-title">All Customers</div>
+    {% if customers %}
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for customer in customers %}
+            <tr>                <td>{{ customer.Name }}</td>
+                <td>{{ customer.Email }}</td>
+                <td>{{ customer.Phone }}</td>
+                <td>
+                    {% if customer.OrderCount > 0 %}
+                        <a href="/admin/customers/{{ customer.CustomerID }}" class="btn btn-primary">View Orders ({{ customer.OrderCount }})</a>
+                    {% else %}
+                        <span class="btn btn-secondary">No Orders</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No customers found.</p>
+    {% endif %}
+</div>
+
+{% if selected_customer %}
+<div class="section-card mt-4">
+    <div class="section-title">Customer Details</div>
+    <div class="customer-info">
+        <p><strong>Name:</strong> {{ selected_customer.FirstName }} {{ selected_customer.LastName }}</p>
+        <p><strong>Email:</strong> {{ selected_customer.Email }}</p>
+        <p><strong>Phone:</strong> {{ selected_customer.Phone }}</p>
     </div>
-    <div class="dashboard-container">
-        <div class="dashboard-header">
-            <h1>Customers</h1>
-        </div>
-        <div class="section-card">
-            <div class="section-title">All Customers</div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for customer in customers %}
-                    <tr>
-                        <td>{{ customer.Name }}</td>
-                        <td>{{ customer.Email }}</td>
-                        <td>{{ customer.Phone }}</td>
-                        <td>
-                            <form method="GET" action="/admin/customers/view" style="display:inline;">
-                                <input type="hidden" name="customer_id" value="{{ customer.CustomerID }}">
-                                <button type="submit">View Orders</button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% if selected_customer %}
-        <div class="section-card">
-            <div class="section-title">Customer Details</div>
-            <p><strong>Name:</strong> {{ selected_customer.FirstName }} {{ selected_customer.LastName }}</p>
-            <p><strong>Email:</strong> {{ selected_customer.Email }}</p>
-            <p><strong>Phone:</strong> {{ selected_customer.Phone }}</p>
-            <h3>Orders</h3>
-            {% if customer_orders and customer_orders|length > 0 %}
-            <table>
-                <thead>
-                    <tr>
-                        <th>Order ID</th>
-                        <th>Status</th>
-                        <th>Order Date</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for order in customer_orders %}
-                    <tr>
-                        <td>{{ order.id }}</td>
-                        <td>{{ order.status }}</td>
-                        <td>{{ order.date }}</td>
-                        <td>
-                            <a href="/admin/customers/order-details/{{ order.id }}" class="primary-btn">View Details</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% else %}
-            <p>No orders found for this customer.</p>
-            {% endif %}
-        </div>
+    
+    <div class="mt-4">
+        <h3>Order History</h3>
+        {% if customer_orders %}
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Status</th>
+                    <th>Order Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in customer_orders %}
+                <tr>
+                    <td>{{ order.id }}</td>
+                    <td><span class="status-badge {{ order.status.lower() }}">{{ order.status }}</span></td>
+                    <td>{{ order.date }}</td>
+                    <td>
+                        <a href="/admin/orders/{{ order.id }}" class="btn btn-primary">View Details</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted">No orders found for this customer.</p>
         {% endif %}
     </div>
-</body>
-</html>
+</div>
+{% endif %}
+{% endblock %}

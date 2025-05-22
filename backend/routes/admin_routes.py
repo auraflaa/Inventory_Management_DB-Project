@@ -1,8 +1,20 @@
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash
 from models.admin_user import AdminUser
+from models.company import Company
+from models.product import Product
+from models.customer import Customer
+from models.product_vendor import ProductVendor
 from models import db
 from services.auth_service import verify_admin_login
-from services.admin_service import get_all_customers, get_all_orders, get_all_products
+from services.admin_service import (
+    get_all_customers, 
+    get_all_orders, 
+    get_all_products,
+    get_all_companies,
+    add_company,
+    delete_company_with_products
+)
+from sqlalchemy.exc import IntegrityError
 
 admin_bp = Blueprint('admin_routes', __name__, url_prefix='/api/admins')
 admin_blueprint = Blueprint('admin', __name__)
@@ -53,11 +65,21 @@ def delete_admin(AdminID):
 # Admin Login Route
 @admin_blueprint.route('/login', methods=['POST'])
 def admin_login():
-    username = request.form.get('username')
-    password = request.form.get('password')
-    if verify_admin_login(username, password):
-        return redirect(url_for('admin.admin_dashboard'))
-    return render_template('admin_login.html', error="Wrong username or password")
+    try:
+        username = request.form.get('username')
+        password = request.form.get('password')
+        if not username or not password:
+            flash('Username and password are required', 'error')
+            return render_template('admin_login.html', error="All fields are required")
+
+        if verify_admin_login(username, password):
+            return redirect(url_for('admin.admin_dashboard'))
+            
+        flash('Invalid username or password', 'error')
+        return render_template('admin_login.html', error="Wrong username or password")
+    except Exception as e:
+        flash(str(e), 'error')
+        return render_template('admin_login.html', error=str(e))
 
 @admin_blueprint.route('/login', methods=['GET'])
 def admin_login_get():
@@ -114,31 +136,64 @@ def edit_product(product_id):
 
 @admin_blueprint.route('/customers', methods=['GET'])
 def admin_customers():
-    customers = get_all_customers()
-    return render_template('admin_customers.html', customers=customers)
+    try:
+        customers = get_all_customers()
+        print(f"[DEBUG] Found {len(customers)} customers") # Debug print
+        for customer in customers:
+            print(f"[DEBUG] Customer data: {customer}")  # Debug customer data
+        
+        # Add flash message if we found customers
+        if customers:
+            flash('Successfully loaded customer data', 'success')
+        else:
+            flash('No customers found in the database', 'info')
+            
+        return render_template('admin_customers.html', customers=customers)
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] Error in admin_customers: {str(e)}")
+        print(traceback.format_exc())
+        flash('Failed to load customer data', 'error')
+        return render_template('admin_customers.html', customers=[])
 
-@admin_blueprint.route('/customers/view', methods=['GET'])
-def admin_view_customer():
-    from models.customer import Customer
-    from models.order import Order
-    from models.order_status import OrderStatus
-    customer_id = request.args.get('customer_id')
-    customers = get_all_customers()
-    selected_customer = None
-    customer_orders = []
-    if customer_id:
-        selected_customer = Customer.query.get(customer_id)
-        if selected_customer:
-            order_status_map = {s.OrderStatusID: s.OrderStatusName for s in OrderStatus.query.all()}
-            orders = Order.query.filter_by(CustomerID=customer_id).all()
-            customer_orders = [
-                {
-                    'id': o.OrderID,
-                    'status': order_status_map.get(o.OrderStatusID, 'Unknown'),
-                    'date': o.OrderDate.strftime('%Y-%m-%d') if o.OrderDate else ''
-                } for o in orders
-            ]
-    return render_template('admin_customers.html', customers=customers, selected_customer=selected_customer, customer_orders=customer_orders)
+@admin_blueprint.route('/customers/<int:customer_id>', methods=['GET'])
+def customer_details(customer_id):
+    try:
+        # Get customer details
+        customer = Customer.query.get_or_404(customer_id)
+        
+        # Get customer orders with status
+        from models.order import Order
+        from models.order_status import OrderStatus
+        
+        # Get status mapping
+        order_statuses = OrderStatus.query.all()
+        status_map = {status.OrderStatusID: status.OrderStatusName for status in order_statuses}
+        
+        # Get orders for this customer
+        orders = Order.query.filter_by(CustomerID=customer_id).all()
+        order_list = []
+        for order in orders:
+            order_list.append({
+                'id': order.OrderID,
+                'status': status_map.get(order.OrderStatusID, 'Unknown'),
+                'date': order.OrderDate.strftime('%Y-%m-%d %H:%M') if order.OrderDate else 'N/A'
+            })
+        
+        # Get all customers for the table
+        all_customers = get_all_customers()
+        
+        return render_template('admin_customers.html',
+                             customers=all_customers,
+                             selected_customer=customer,
+                             customer_orders=order_list)
+                             
+    except Exception as e:
+        print(f"[ERROR] Error in customer_details: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        flash('Error loading customer details', 'error')
+        return redirect(url_for('admin.admin_customers'))
 
 @admin_blueprint.route('/customers/order-details/<int:order_id>', methods=['GET'])
 def admin_order_details(order_id):
@@ -189,18 +244,25 @@ def admin_vendors():
 
 @admin_blueprint.route('/companies', methods=['GET', 'POST'])
 def admin_companies():
-    from models.company import Company
-    message = None
-    if request.method == 'POST':
-        name = request.form.get('company_name')
-        phone = request.form.get('company_phone')
-        address = request.form.get('company_address')
-        city = request.form.get('company_city')
-        state = request.form.get('company_state')
-        if name:
-            new_company = Company(CompanyName=name, BusinessPhone=phone, Address=address, City=city, StateAbbrev=state)
-            db.session.add(new_company)
-            db.session.commit()
-            message = 'Company added successfully.'
-    companies = Company.query.all()
-    return render_template('admin_companies.html', companies=companies, message=message)
+    try:
+        if request.method == 'POST':
+            result = add_company(request.form)
+            if result['success']:
+                flash(result['message'], 'success')
+            else:
+                flash(result['message'], 'error')
+
+        companies = get_all_companies()
+        return render_template('admin_companies.html', companies=companies)
+    except Exception as e:
+        flash(f'An error occurred: {str(e)}', 'error')
+        return render_template('admin_companies.html', companies=[])
+
+@admin_blueprint.route('/companies/delete/<int:company_id>', methods=['POST'])
+def delete_company(company_id):
+    result = delete_company_with_products(company_id)
+    if result['success']:
+        flash(result['message'], 'success')
+    else:
+        flash(result['message'], 'error')
+    return redirect(url_for('admin.admin_companies'))

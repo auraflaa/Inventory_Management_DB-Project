@@ -7,7 +7,10 @@ class Company(db.Model):
     BusinessPhone = db.Column(db.String(20))
     Address = db.Column(db.Text)
     City = db.Column(db.String(100))
-    StateAbbrev = db.Column(db.String(10))
+    StateAbbrev = db.Column(db.String(10))    # Add products relationship with cascade delete
+    products = db.relationship('Product', 
+                             backref=db.backref('company', lazy=True),
+                             cascade='all, delete-orphan')
 
     def to_dict(self):
         return {
@@ -16,5 +19,6 @@ class Company(db.Model):
             "BusinessPhone": self.BusinessPhone,
             "Address": self.Address,
             "City": self.City,
-            "StateAbbrev": self.StateAbbrev
+            "StateAbbrev": self.StateAbbrev,
+            "ProductCount": len(self.products)
         }
