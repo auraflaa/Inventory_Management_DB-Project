@@ -99,22 +99,47 @@ def get_all_companies():
     } for company in companies]
 
 def delete_company_with_products(company_id):
-    """Delete a company and its associated products."""
+    """Delete a company and its associated products and purchase orders."""
     try:
+        from models.company import Company
+        from models.product import Product
+        from models.product_vendor import ProductVendor
+        from models.purchase_order import PurchaseOrder
+        from models.purchase_order_detail import PurchaseOrderDetail
+        from models.order_detail import OrderDetail
+
         company = Company.query.get_or_404(company_id)
-        product_count = len(company.products)
         company_name = company.CompanyName
 
-        # The products will be automatically deleted due to cascade='all, delete-orphan'
-        # in the Company model's products relationship
+        # Get all products associated with this company
+        products = Product.query.join(ProductVendor).filter(ProductVendor.VendorID == company_id).all()
+        
+        # For each product, delete its dependencies
+        for product in products:
+            # Delete order details for this product
+            OrderDetail.query.filter_by(ProductID=product.ProductID).delete()
+            # Delete product vendor relationships
+            ProductVendor.query.filter_by(ProductID=product.ProductID).delete()
+
+        # Delete purchase order details and purchase orders for this company
+        purchase_orders = PurchaseOrder.query.filter_by(VendorID=company_id).all()
+        for po in purchase_orders:
+            PurchaseOrderDetail.query.filter_by(PurchaseOrderID=po.PurchaseOrderID).delete()
+            db.session.delete(po)
+
+        # Delete the products themselves
+        for product in products:
+            db.session.delete(product)
+
+        # Finally, delete the company
         db.session.delete(company)
         db.session.commit()
 
         return {
             'success': True,
-            'message': f'Company "{company_name}" and its {product_count} product(s) have been deleted successfully',
+            'message': f'Company "{company_name}" and its {len(products)} product(s) have been deleted successfully',
             'name': company_name,
-            'product_count': product_count
+            'product_count': len(products)
         }
     except Exception as e:
         db.session.rollback()

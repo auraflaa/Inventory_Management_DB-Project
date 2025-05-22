@@ -6,6 +6,7 @@ from models.customer import Customer
 from models.product_vendor import ProductVendor
 from models.order_detail import OrderDetail
 from models.purchase_order_detail import PurchaseOrderDetail
+from models.purchase_order import PurchaseOrder
 from models import db
 from services.auth_service import verify_admin_login
 from services.admin_service import (
@@ -179,7 +180,7 @@ def edit_product(product_id):
                 product.QuantityPerUnit = quantity_per_unit
                 
                 db.session.commit()
-                flash('Product updated successfully', 'success')
+                flash('Product updated successfully', 'dashboard-success')  # Use a different flash category
                 return redirect(url_for('admin.admin_dashboard'))
                 
             except ValueError:
