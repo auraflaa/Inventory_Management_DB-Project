@@ -1,7 +1,8 @@
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for, session
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for, session, flash
 from models.customer import Customer
 from models import db
 from services.auth_service import verify_customer_login
+from flask_wtf.csrf import CSRFError
 from services.customer_service import get_customer_orders, get_customer_products
 from models.product import Product
 from models.order import Order
@@ -63,16 +64,25 @@ def delete_customer(CustomerID):
 # Customer Login Route
 @customer_blueprint.route('/login', methods=['POST'])
 def customer_login():
-    email = request.form.get('email')
-    password = request.form.get('password')
-    # Try to find a customer with matching email and password
-    from services.auth_service import verify_password
-    from models.customer import Customer
-    customers = Customer.query.all()
-    for customer in customers:
-        if (customer.Email == email or not email) and verify_password(password, customer.PasswordHash):
+    try:
+        email = request.form.get('email')
+        password = request.form.get('password')
+        
+        if not email or not password:
+            return render_template('index.html', error="Email and password are required")
+            
+        # Try to find a customer with matching email and password
+        from services.auth_service import verify_password
+        from models.customer import Customer
+        customer = Customer.query.filter_by(Email=email).first()
+        
+        if customer and verify_password(password, customer.PasswordHash):
             return redirect(url_for('customer.customer_dashboard', customer_id=customer.CustomerID))
-    return render_template('index.html', error="Incorrect password or email")
+        
+        return render_template('index.html', error="Incorrect email or password")
+        
+    except CSRFError:
+        return render_template('index.html', error="Invalid form submission, please try again")
 
 # Customer Dashboard Route
 @customer_blueprint.route('/dashboard/<int:customer_id>', methods=['GET'])
@@ -94,34 +104,42 @@ def customer_orders_page(customer_id):
 # Customer Signup Route
 @customer_blueprint.route('/signup', methods=['POST'])
 def customer_signup():
-    # Extract form data from the signup form
-    first_name = request.form.get('first_name')
-    last_name = request.form.get('last_name')
-    email = request.form.get('email')
-    phone = request.form.get('phone')
-    password = request.form.get('password')
+    try:
+        # Extract form data from the signup form
+        first_name = request.form.get('first_name')
+        last_name = request.form.get('last_name')
+        email = request.form.get('email')
+        phone = request.form.get('phone')
+        password = request.form.get('password')
 
-    # Validate required fields
-    if not all([first_name, last_name, email, phone, password]):
-        return render_template('signup.html', error="All fields are required")
+        # Validate required fields
+        if not all([first_name, last_name, email, phone, password]):
+            return render_template('signup.html', error="All fields are required")
 
-    # Check if the email is already registered
-    if Customer.query.filter_by(Email=email).first():
-        return render_template('signup.html', error="Email is already registered")
+        # Check if the email is already registered
+        if Customer.query.filter_by(Email=email).first():
+            return render_template('signup.html', error="Email is already registered")
 
-    # Create a new customer
-    new_customer = Customer(
-        FirstName=first_name,
-        LastName=last_name,
-        Email=email,
-        Phone=phone,
-        PasswordHash=password  # Store as plain text
-    )    # Save the customer to the database
-    db.session.add(new_customer)
-    db.session.commit()
+        # Create a new customer
+        new_customer = Customer(
+            FirstName=first_name,
+            LastName=last_name,
+            Email=email,
+            Phone=phone,
+            PasswordHash=password  # Store as plain text
+        )    
+        # Save the customer to the database
+        db.session.add(new_customer)
+        db.session.commit()
 
-    # Redirect to the login page after successful signup
-    return redirect(url_for('home'))
+        # Redirect to the login page after successful signup
+        return redirect(url_for('home'))
+        
+    except CSRFError:
+        return render_template('signup.html', error="Invalid form submission, please try again")
+    except Exception as e:
+        db.session.rollback()
+        return render_template('signup.html', error="An error occurred during signup. Please try again.")
 
 @customer_blueprint.route('/signup', methods=['GET'])
 def customer_signup_get():
@@ -167,6 +185,7 @@ def customer_account_deleted():
 @customer_blueprint.route('/order', methods=['POST'])
 def place_order():
     try:
+        # CSRF validation happens automatically via Flask-WTF
         product_id = request.form.get('product_id')
         quantity = int(request.form.get('quantity', 1))
         customer_id = request.args.get('customer_id') or request.form.get('customer_id')
@@ -244,44 +263,71 @@ def customer_order_details(order_id):
 
 @customer_blueprint.route('/order/<int:order_id>/cancel', methods=['POST'])
 def cancel_order(order_id):
-    from models.order import Order
-    from models.order_detail import OrderDetail
-    from models.product import Product
-    order = Order.query.get_or_404(order_id)
-    # Restore product quantities
-    order_details = OrderDetail.query.filter_by(OrderID=order_id).all()
-    for detail in order_details:
-        product = Product.query.get(detail.ProductID)
-        if product:
-            product.QuantityPerUnit = str(int(product.QuantityPerUnit) + detail.Quantity)
-        db.session.delete(detail)
-    db.session.delete(order)
-    db.session.commit()
-    return redirect(url_for('customer.customer_orders_page', customer_id=order.CustomerID))
+    try:
+        from models.order import Order
+        from models.order_detail import OrderDetail
+        from models.product import Product
+        order = Order.query.get_or_404(order_id)
+        # Restore product quantities
+        order_details = OrderDetail.query.filter_by(OrderID=order_id).all()
+        for detail in order_details:
+            product = Product.query.get(detail.ProductID)
+            if product:
+                product.QuantityPerUnit = str(int(product.QuantityPerUnit) + detail.Quantity)
+            db.session.delete(detail)
+        db.session.delete(order)
+        db.session.commit()
+        flash("Order canceled successfully", "success")
+        return redirect(url_for('customer.customer_orders_page', customer_id=order.CustomerID))
+    except CSRFError:
+        flash("Invalid form submission, please try again", "error")
+        return redirect(url_for('customer.customer_order_details', order_id=order_id))
+    except Exception as e:
+        db.session.rollback()
+        flash("An error occurred while canceling the order", "error")
+        return redirect(url_for('customer.customer_order_details', order_id=order_id))
 
 @customer_blueprint.route('/settings/<int:customer_id>', methods=['GET', 'POST'])
 def customer_settings(customer_id):
-    from models.customer import Customer
-    customer = Customer.query.get_or_404(customer_id)
-    if request.method == 'POST':
-        dark_mode = request.form.get('default_dark_mode') == 'on'
-        customer.DefaultDarkMode = dark_mode
-        db.session.commit()
+    try:
+        from models.customer import Customer
+        customer = Customer.query.get_or_404(customer_id)
+        if request.method == 'POST':
+            dark_mode = request.form.get('default_dark_mode') == 'on'
+            customer.DefaultDarkMode = dark_mode
+            db.session.commit()
+            flash("Settings updated successfully", "success")
+            return redirect(url_for('customer.customer_settings', customer_id=customer_id))
+        return render_template('customer_settings.html', customer=customer)
+    except CSRFError:
+        flash("Invalid form submission, please try again", "error")
         return redirect(url_for('customer.customer_settings', customer_id=customer_id))
-    return render_template('customer_settings.html', customer=customer)
+    except Exception as e:
+        db.session.rollback()
+        flash("An error occurred while saving settings", "error")
+        return redirect(url_for('customer.customer_settings', customer_id=customer_id))
 
 @customer_blueprint.route('/account/<int:customer_id>', methods=['GET', 'POST'])
 def update_account(customer_id):
-    from models.customer import Customer
-    customer = Customer.query.get_or_404(customer_id)
-    if request.method == 'POST':
-        customer.FirstName = request.form.get('first_name', customer.FirstName)
-        customer.LastName = request.form.get('last_name', customer.LastName)
-        customer.Email = request.form.get('email', customer.Email)
-        customer.Phone = request.form.get('phone', customer.Phone)
-        db.session.commit()
-        return redirect(url_for('customer.customer_settings', customer_id=customer_id))
-    return render_template('customer_update_account.html', customer=customer)
+    try:
+        from models.customer import Customer
+        customer = Customer.query.get_or_404(customer_id)
+        if request.method == 'POST':
+            customer.FirstName = request.form.get('first_name', customer.FirstName)
+            customer.LastName = request.form.get('last_name', customer.LastName)
+            customer.Email = request.form.get('email', customer.Email)
+            customer.Phone = request.form.get('phone', customer.Phone)
+            db.session.commit()
+            flash("Account information updated successfully", "success")
+            return redirect(url_for('customer.customer_settings', customer_id=customer_id))
+        return render_template('customer_update_account.html', customer=customer)
+    except CSRFError:
+        flash("Invalid form submission, please try again", "error")
+        return redirect(url_for('customer.update_account', customer_id=customer_id))
+    except Exception as e:
+        db.session.rollback()
+        flash("An error occurred while updating account information", "error")
+        return redirect(url_for('customer.update_account', customer_id=customer_id))
 
 @customer_blueprint.route('/signout')
 def customer_signout():

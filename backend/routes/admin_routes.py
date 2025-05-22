@@ -261,8 +261,6 @@ def admin_companies():
 @admin_blueprint.route('/companies/delete/<int:company_id>', methods=['POST'])
 def delete_company(company_id):
     result = delete_company_with_products(company_id)
-    if result['success']:
-        flash(result['message'], 'success')
-    else:
+    if not result['success']:
         flash(result['message'], 'error')
     return redirect(url_for('admin.admin_companies'))

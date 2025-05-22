@@ -23,8 +23,8 @@
 </head>
 <body>
     <div class="update-card">
-        <h1>Update Account</h1>
-        <form method="POST">
+        <h1>Update Account</h1>        <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <label for="first_name">First Name:</label>
             <input type="text" id="first_name" name="first_name" value="{{ customer.FirstName }}" required>
             <label for="last_name">Last Name:</label>

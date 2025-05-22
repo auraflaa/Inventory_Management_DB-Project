@@ -175,8 +175,8 @@
     </div>
     <div class="dashboard-container">
         <div class="dashboard-header">
-            <h1>Welcome, <span>{{ customer_name }}</span></h1>
-            <form id="delete-account-form" class="delete-account-form" method="POST" action="/customer/delete/{{ customer_id }}">
+            <h1>Welcome, <span>{{ customer_name }}</span></h1>            <form id="delete-account-form" class="delete-account-form" method="POST" action="/customer/delete/{{ customer_id }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <button type="button" id="delete-account-btn" class="danger-btn">Delete Account</button>
             </form>
         </div>
@@ -201,6 +201,7 @@
                 <div class="product-actions">
                     {% if product.QuantityPerUnit|int > 0 %}
                     <form class="order-form" method="POST" action="{{ url_for('customer.place_order', customer_id=customer_id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <input type="hidden" name="product_id" value="{{ product.ProductID }}">
                         <label for="quantity-{{ product.ProductID }}" class="visually-hidden">Quantity</label>
                         <input type="number" 

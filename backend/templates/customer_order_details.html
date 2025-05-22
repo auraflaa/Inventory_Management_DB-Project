@@ -77,8 +77,8 @@
                 </tbody>
             </table>
             <a href="/customer/orders/{{ order.CustomerID }}" class="primary-btn">Back to My Orders</a>
-            {% if order.OrderStatusID == 1 %}
-            <form method="POST" action="/customer/order/{{ order.OrderID }}/cancel" style="margin-top:20px;">
+            {% if order.OrderStatusID == 1 %}            <form method="POST" action="/customer/order/{{ order.OrderID }}/cancel" style="margin-top:20px;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <button type="submit" class="danger-btn">Cancel Order</button>
             </form>
             {% endif %}
