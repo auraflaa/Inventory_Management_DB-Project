@@ -1,0 +1,85 @@
+/* Form input styling to match tables while keeping dark theme */
+.admin-form input,
+.admin-form select,
+.admin-form textarea {
+    width: calc(100% - 32px) !important; /* Subtract the total horizontal padding */
+    padding: 12px 16px !important;
+    background: #F8F9FA !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    border-radius: 6px !important;
+    color: #212529 !important;
+    font-size: 14px !important;
+    transition: all 0.2s !important;
+    box-sizing: border-box !important; /* Include padding and border in width calculation */
+}
+
+.admin-form input:focus,
+.admin-form select:focus,
+.admin-form textarea:focus {
+    background: #FFFFFF !important;
+    border-color: #7C3AED !important;
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1) !important;
+    outline: none !important;
+}
+
+.admin-form label {
+    color: var(--admin-text-primary) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    margin-bottom: 8px !important;
+    display: block !important;
+}
+
+/* Form groups spacing */
+.admin-form-group {
+    margin-bottom: 20px !important;
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+}
+
+/* Submit button styling - keeping the accent color */
+.admin-form button[type="submit"] {
+    background: var(--admin-accent) !important;
+    color: #FFFFFF !important;
+    border: none !important;
+    padding: 12px 24px !important;
+    border-radius: 6px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: background-color 0.2s !important;
+}
+
+.admin-form button[type="submit"]:hover {
+    opacity: 0.9 !important;
+}
+
+/* Placeholder text */
+.admin-form input::placeholder,
+.admin-form textarea::placeholder {
+    color: #6C757D !important;
+    opacity: 0.7 !important;
+}
+
+/* Form container and layout fixes */
+.admin-form {
+    position: relative !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    box-sizing: border-box !important;
+}
+
+/* Ensure all form elements use border-box */
+.admin-form *,
+.admin-form *::before,
+.admin-form *::after {
+    box-sizing: border-box !important;
+}
+
+/* Container fixes */
+.admin-section-card {
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+}
