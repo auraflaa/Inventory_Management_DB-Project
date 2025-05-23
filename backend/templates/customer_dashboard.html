@@ -224,6 +224,55 @@
         [data-theme="dark"] .payment-option:hover {
             background: #374151;
         }
+        .confirmation-dialog {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            z-index: 2100;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .confirmation-dialog h3 {
+            color: #e53935;
+            margin-bottom: 16px;
+            font-size: 1.3em;
+        }
+        .confirmation-dialog p {
+            color: #333;
+            margin-bottom: 24px;
+            font-size: 1.1em;
+        }
+        .confirmation-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+        .confirmation-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2050;
+        }
+        [data-theme="dark"] .confirmation-dialog {
+            background: #1f2937;
+        }
+        [data-theme="dark"] .confirmation-dialog h3 {
+            color: #ef5350;
+        }
+        [data-theme="dark"] .confirmation-dialog p {
+            color: #e5e7eb;
+        }
     </style>
 </head>
 <body class="{% if default_dark_mode %}dark-mode{% endif %}">
@@ -290,7 +339,8 @@
             </div>
             {% endfor %}
         </div>
-    </div>    <div id="paymentMethodDialog" class="modal">
+    </div>    
+    <div id="paymentMethodDialog" class="modal">
         <div class="modal-content">
             <h3>Confirm Order: <span class="product-highlight"></span></h3>
             <form id="paymentForm" class="payment-form">
@@ -315,6 +365,15 @@
             </form>
         </div>
     </div>
+    <div id="confirmationDialog" class="confirmation-dialog">
+        <h3>Cancel Order?</h3>
+        <p>Are you sure you want to cancel this order? This action cannot be undone.</p>
+        <div class="confirmation-buttons">
+            <button type="button" class="secondary-btn" onclick="hideConfirmationDialog(false)">No, Keep Order</button>
+            <button type="button" class="danger-btn" onclick="hideConfirmationDialog(true)">Yes, Cancel Order</button>
+        </div>
+    </div>
+    <div id="confirmationOverlay" class="confirmation-overlay"></div>
     <button id="darkModeToggle" class="dark-mode-toggle" title="Toggle dark mode">🌙</button>
     <script>
     // Global variable to store active order form
@@ -332,10 +391,11 @@
         popup.textContent = message;
         document.body.appendChild(popup);
 
+        // Wait 5 seconds before starting the fade out animation
         setTimeout(() => {
             popup.style.opacity = '0';
             setTimeout(() => popup.remove(), 300);
-        }, 2000);
+        }, 5000);  // Increased from 2000ms to 5000ms
     }
 
     function submitOrder(form) {
@@ -352,13 +412,28 @@
             productSpan.textContent = productName;
         }
         return false;
-    }
+    }    
 
     function closePaymentDialog() {
-        const dialog = document.getElementById('paymentMethodDialog');
-        dialog.style.display = 'none';
-        activeOrderForm = null;
-    }    document.addEventListener('DOMContentLoaded', function() {
+        const confirmationDialog = document.getElementById('confirmationDialog');
+        const confirmationOverlay = document.getElementById('confirmationOverlay');
+        confirmationDialog.style.display = 'flex';
+        confirmationOverlay.style.display = 'block';
+    }
+
+    function hideConfirmationDialog(confirmCancel) {
+        const confirmationDialog = document.getElementById('confirmationDialog');
+        const confirmationOverlay = document.getElementById('confirmationOverlay');
+        confirmationDialog.style.display = 'none';
+        confirmationOverlay.style.display = 'none';
+        if (confirmCancel) {
+            const dialog = document.getElementById('paymentMethodDialog');
+            dialog.style.display = 'none';
+            activeOrderForm = null;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
         // Handle payment form submission
         document.getElementById('paymentForm').addEventListener('submit', async function(event) {
             event.preventDefault();
@@ -378,13 +453,14 @@
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest'
                         }
-                    });
-
+                    });                    
                     if (response.ok) {
-                        // Show success message
+                        // Show success message and wait for popup duration before reloading
                         showSuccessPopup('Order placed successfully!');
-                        // Redirect to the same page to refresh the product list
-                        window.location.reload();
+                        // Wait for popup to finish before reloading (5 seconds + 300ms fade)
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 5300);
                     } else {
                         const error = await response.text();
                         showSuccessPopup('Failed to place order: ' + error);

@@ -11,13 +11,11 @@
             --text-color: #333;
             --title-color: #0288d1;
             --border-color: #ddd;
-        }
-
-        [data-theme="dark"] {
-            --section-bg: #1f2937;
-            --text-color: #e5e7eb;
-            --title-color: #60a5fa;
-            --border-color: #374151;
+        }        [data-theme="dark"] {
+            --section-bg: #1e293b;
+            --text-color: #f1f5f9;
+            --title-color: #38bdf8;
+            --border-color: #475569;
         }
 
         body {
@@ -25,7 +23,7 @@
         }
 
         [data-theme="dark"] body {
-            background-color: #111827;
+            background-color: #0f172a;
             color: var(--text-color);
         }
 
@@ -66,16 +64,57 @@
         }
 
         [data-theme="dark"] .sidebar {
-            background: #1f2937;
-            border-right: 1px solid #374151;
+            background: #1e293b;
+            border-right: 1px solid #475569;
         }
 
         [data-theme="dark"] .sidebar-nav a {
-            color: #e5e7eb;
+            color: #f1f5f9;
         }
 
         [data-theme="dark"] .sidebar-nav a:hover {
-            background: #374151;
+            background: #334155;
+        }
+
+        [data-theme="dark"] .alert {
+            background-color: #1e293b;
+            border-color: #475569;
+        }
+
+        [data-theme="dark"] .danger-btn {
+            background: #ef4444;
+            color: #ffffff;
+        }
+
+        [data-theme="dark"] .danger-btn:hover {
+            background: #dc2626;
+        }
+
+        [data-theme="dark"] .primary-btn {
+            background: #38bdf8;
+            color: #ffffff;
+        }
+
+        [data-theme="dark"] .primary-btn:hover {
+            background: #0ea5e9;
+        }
+
+        [data-theme="dark"] .secondary-btn {
+            background: #475569;
+            color: #f1f5f9;
+        }
+
+        [data-theme="dark"] .secondary-btn:hover {
+            background: #334155;
+        }
+
+        [data-theme="dark"] .confirmation-dialog {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        [data-theme="dark"] .order-status-badge {
+            background: #334155;
+            color: #38bdf8;
         }
 
         .dark-mode-toggle {
@@ -131,6 +170,62 @@
 
         .inline-form {
             display: inline;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            display: none;
+        }
+
+        .confirmation-dialog {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--section-bg);
+            padding: 24px;
+            border-radius: 12px;
+            z-index: 101;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: none;
+        }
+
+        .confirmation-dialog h3 {
+            margin: 0 0 16px 0;
+            color: var(--title-color);
+        }
+
+        .confirmation-dialog p {
+            margin: 0 0 20px 0;
+            color: var(--text-color);
+        }
+
+        .dialog-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .secondary-btn {
+            background: #e0e0e0;
+            color: #333;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .secondary-btn:hover {
+            background: #d0d0d0;
         }
     </style>
 </head>
@@ -202,6 +297,16 @@
         </div>
     </div>
 
+    <!-- Confirmation Dialog -->    <div id="confirmationOverlay" class="overlay"></div>
+    <div id="confirmationDialog" class="confirmation-dialog">
+        <h3>Confirm Order Cancellation</h3>
+        <p>Are you sure you want to cancel this order? This action cannot be undone.</p>
+        <div class="dialog-actions">
+            <button onclick="hideConfirmationDialog(false)" class="secondary-btn">No, Keep Order</button>
+            <button onclick="confirmCancellation()" class="danger-btn">Yes, Cancel Order</button>
+        </div>
+    </div>
+
     <button id="darkModeToggle" class="dark-mode-toggle" title="Toggle dark mode">🌙</button>
 
     <script>
@@ -223,6 +328,39 @@
             htmlElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
             darkModeToggle.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        });
+
+        // Confirmation dialog functionality
+        let cancelForm = null;
+
+        function showConfirmationDialog(form) {
+            cancelForm = form;
+            document.getElementById('confirmationDialog').style.display = 'block';
+            document.getElementById('confirmationOverlay').style.display = 'block';
+        }
+
+        function hideConfirmationDialog() {
+            document.getElementById('confirmationDialog').style.display = 'none';
+            document.getElementById('confirmationOverlay').style.display = 'none';
+            cancelForm = null;
+        }
+
+        function confirmCancellation() {
+            if (cancelForm) {
+                cancelForm.submit();
+            }
+            hideConfirmationDialog();
+        }
+
+        // Update all cancel order forms to use confirmation
+        document.addEventListener('DOMContentLoaded', () => {
+            const cancelForms = document.querySelectorAll('form[action*="/cancel"]');
+            cancelForms.forEach(form => {
+                form.onsubmit = (e) => {
+                    e.preventDefault();
+                    showConfirmationDialog(form);
+                };
+            });
         });
     </script>
 </body>
