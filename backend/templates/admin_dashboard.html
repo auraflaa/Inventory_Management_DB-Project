@@ -33,12 +33,17 @@
                     <td>{{ product.ProductName }}</td>
                     <td>{{ product.ProductCode }}</td>
                     <td>${{ product.UnitPrice }}</td>
-                    <td>{{ product.QuantityPerUnit }}</td>
+                    <td {% if product.QuantityPerUnit|int == 0 %}class="out-of-stock"{% endif %}>
+                        {{ product.QuantityPerUnit }}
+                        {% if product.QuantityPerUnit|int == 0 %}
+                        <span class="out-of-stock-badge">Out of Stock</span>
+                        {% endif %}
+                    </td>
                     <td class="admin-actions">
                         <a href="{{ url_for('admin.edit_product', product_id=product.ProductID) }}" class="admin-action-btn">
                             <span class="admin-icon">✏️</span> Edit
                         </a>
-                        <form method="POST" action="{{ url_for('admin.delete_product', product_id=product.ProductID) }}" style="display: inline;">
+                        <form method="POST" action="{{ url_for('admin.delete_product', product_id=product.ProductID) }}" class="inline-form">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="button" onclick="confirmDelete(this.form)" class="admin-action-btn danger">
                                 <span class="admin-icon">🗑️</span> Delete
@@ -93,7 +98,6 @@
                     <span class="admin-button-text">Add Product</span>
                 </button>
             </div>
-            <div class="admin-form-message"></div>
         </form>
     </div>
 
@@ -108,14 +112,11 @@
         </div>
     </div>
 
-    <!-- Edit Product Modal -->
-    <div id="editProductModal" class="admin-modal">
-        <div class="admin-modal-content">
-            <div class="admin-modal-header">
-                <h2>Edit Product</h2>
-                <button class="admin-modal-close" onclick="closeEditModal()" aria-label="Close modal">
-                    <span class="admin-icon" aria-hidden="true">×</span>
-                </button>
+    <div id="editProductModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Product</h3>
+                <button class="modal-close" onclick="closeEditModal()" aria-label="Close modal">×</button>
             </div>
             
             <form id="editProductForm" class="admin-form" method="POST">
@@ -142,12 +143,8 @@
                 </div>
 
                 <div class="admin-form-actions">
-                    <button type="submit" class="admin-button">
-                        <span class="admin-icon"></span>
-                        <span class="admin-button-text">Save Changes</span>
-                    </button>
+                    <button type="submit" class="admin-button">Save Changes</button>
                 </div>
-                <div class="admin-form-message"></div>
             </form>
         </div>
     </div>
@@ -155,69 +152,6 @@
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
-
-<style>
-.alert {
-    padding: 12px 20px;
-    margin-bottom: 20px;
-    border-radius: 4px;
-    font-weight: 500;
-}
-
-.alert-error {
-    background-color: #ffebee;
-    color: #c62828;
-    border: 1px solid #ef5350;
-}
-
-.alert-success {
-    background-color: #e8f5e9;
-    color: #2e7d32;
-    border: 1px solid #66bb6a;
-}
-
-.alert-info {
-    background-color: #e3f2fd;
-    color: #1565c0;
-    border: 1px solid #42a5f5;
-}
-
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.5);
-    z-index: 1000;
-}
-
-.modal-content {
-    background-color: white;
-    margin: 15% auto;
-    padding: 20px;
-    border-radius: 5px;
-    width: 400px;
-    position: relative;
-}
-
-.modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 20px;
-}
-
-.admin-button.danger {
-    background-color: #dc3545;
-}
-
-.admin-button.danger:hover {
-    background-color: #c82333;
-}
-</style>
-
 <script>
 function confirmDelete(form) {
     if (confirm("Are you sure you want to delete this product? This action cannot be undone.")) {

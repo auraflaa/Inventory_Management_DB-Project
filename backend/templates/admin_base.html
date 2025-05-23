@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Admin Panel{% endblock %}</title>    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/table-overrides.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/form-overrides.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/product-table-overrides.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -17,10 +19,15 @@
         <div class="admin-sidebar-header">
             <span class="admin-sidebar-logo">🛒</span>
             <span class="admin-sidebar-title">Admin Panel</span>
-        </div>        <ul class="admin-sidebar-nav">            <li><a href="/admin/dashboard" {% if request.endpoint == 'admin.admin_dashboard' %}class="active"{% endif %}><span class="admin-icon">📦</span> Products</a></li>
+        </div>
+        <ul class="admin-sidebar-nav">
+            <li><a href="/admin/dashboard" {% if request.endpoint == 'admin.admin_dashboard' %}class="active"{% endif %}><span class="admin-icon">📦</span> Products</a></li>
             <li><a href="/admin/orders" {% if request.endpoint == 'admin.admin_orders' %}class="active"{% endif %}><span class="admin-icon">🧾</span> Orders</a></li>
             <li><a href="/admin/customers" {% if request.endpoint == 'admin.admin_customers' %}class="active"{% endif %}><span class="admin-icon">👥</span> Customers</a></li>
             <li><a href="/admin/companies" {% if request.endpoint == 'admin.admin_companies' %}class="active"{% endif %}><span class="admin-icon">🏭</span> Companies</a></li>
+            <li><a href="/admin/analysis" {% if request.endpoint == 'admin.admin_analysis' %}class="active"{% endif %}><span class="admin-icon">📊</span> Analysis</a></li>
+            <li class="admin-sidebar-divider"></li>
+            <li><a href="/admin/logout" class="admin-logout"><span class="admin-icon">🚪</span> Logout</a></li>
         </ul>
     </div>
     

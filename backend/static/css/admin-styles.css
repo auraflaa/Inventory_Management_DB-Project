@@ -143,15 +143,15 @@
 }
 
 .admin-button.danger {
-    background: #DC2626;
+    background-color: #dc3545;
 }
 
 .admin-button.danger:hover {
-    background: #B91C1C;
-    opacity: 1;
+    background-color: #c82333;
 }
 
-.admin-table {    width: 100%;
+.admin-table {
+    width: 100%;
     border-collapse: separate;
     border-spacing: 0;
     background: #FAFAF8;
@@ -304,6 +304,60 @@
     background: rgba(239, 68, 68, 0.1);
     color: #f87171;
     border-color: rgba(239, 68, 68, 0.2);
+}
+
+/* Alert Styles */
+.alert {
+    padding: 12px 20px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.alert-error {
+    background-color: #ffebee;
+    color: #c62828;
+    border: 1px solid #ef5350;
+}
+
+.alert-success {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #66bb6a;
+}
+
+.alert-info {
+    background-color: #e3f2fd;
+    color: #1565c0;
+    border: 1px solid #42a5f5;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: white;
+    margin: 15% auto;
+    padding: 20px;
+    border-radius: 5px;
+    width: 400px;
+    position: relative;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
 }
 
 /* Admin Utility Classes */
@@ -524,6 +578,21 @@ body {
 
 .admin-icon {
     font-size: 18px;
+}
+
+.admin-sidebar-divider {
+    height: 1px;
+    background: var(--admin-border);
+    margin: 8px 16px;
+    list-style: none;
+}
+
+.admin-logout {
+    color: #ef4444 !important;
+}
+
+.admin-logout:hover {
+    background: rgba(239, 68, 68, 0.1) !important;
 }
 
 /* Admin Content Area */

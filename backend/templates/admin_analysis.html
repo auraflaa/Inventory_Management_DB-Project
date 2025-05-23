@@ -1,0 +1,256 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Analytics Dashboard{% endblock %}
+
+{% block header %}Analytics Dashboard{% endblock %}
+
+{% block content %}
+<div class="admin-section-card">    <!-- Summary Cards -->
+    <div class="admin-summary-grid">
+        <div class="admin-summary-card">
+            <div class="admin-card-title">Total Customers</div>
+            <div class="admin-card-value">{{ analytics.total_customers }}</div>
+            <div class="admin-card-change {{ 'positive' if analytics.active_customers/analytics.total_customers >= 0.5 else 'negative' }}">
+                <span>{{ (analytics.active_customers / analytics.total_customers * 100)|round|int }}% Active</span>
+            </div>
+        </div>
+        
+        <div class="admin-summary-card">
+            <div class="admin-card-title">Total Products</div>
+            <div class="admin-card-value">{{ analytics.total_products }}</div>
+            <div class="admin-card-subtitle">Listed in Inventory</div>
+        </div>
+        
+        <div class="admin-summary-card">
+            <div class="admin-card-title">Pending Orders</div>
+            <div class="admin-card-value">{{ analytics.pending_orders }}</div>
+            <div class="admin-card-change {{ 'positive' if analytics.pending_orders < 10 else 'negative' }}">
+                <span>{{ 'Low' if analytics.pending_orders < 10 else 'High' }} Volume</span>
+            </div>
+        </div>
+        
+        <div class="admin-summary-card">
+            <div class="admin-card-title">Active Customers</div>
+            <div class="admin-card-value">{{ analytics.active_customers }}</div>
+            <div class="admin-card-subtitle">With Recent Orders</div>
+        </div>
+    </div>    <!-- Products Sold Chart -->
+    <div class="admin-section-card">
+        <div class="admin-section-title">Total Products Sold</div>
+        <div class="chart-container">
+            <canvas id="stockChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Available Stock Chart -->
+    <div class="admin-section-card">
+        <div class="admin-section-title">Available Stock Units</div>
+        <div class="chart-container">
+            <canvas id="unitStockChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const stockData = {{ analytics.product_stock|tojson }};
+    
+    // Prepare data for Chart.js
+    const labels = stockData.map(item => item.name);
+    const salesData = stockData.map(item => item.total_sold);
+    const stockLevels = stockData.map(item => item.units_in_stock);
+    
+    // Create Product Sales chart
+    const ctx = document.getElementById('stockChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Units Sold',
+                data: salesData,
+                backgroundColor: '#2D3E50',
+                borderColor: '#2D3E50',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',  // Make it a horizontal bar chart
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Number of Units Sold'
+                    },
+                    grid: {
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                },
+                y: {
+                    grid: {
+                        display: false
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                title: {
+                    display: true,
+                    text: 'Product Sales Analysis'
+                }
+            }
+        }
+    });
+
+    // Create Available Stock chart
+    const unitStockCtx = document.getElementById('unitStockChart').getContext('2d');
+    new Chart(unitStockCtx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Available Units',
+                data: stockLevels,
+                backgroundColor: '#006D77',
+                borderColor: '#006D77',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Units in Stock'
+                    },
+                    grid: {
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                title: {
+                    display: true,
+                    text: 'Current Stock Levels'
+                }
+            }
+        }
+    });
+});
+</script>
+
+<style>
+.chart-container {
+    height: 400px;
+    margin-top: 20px;
+    margin-bottom: 40px;
+}
+
+.admin-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.admin-summary-card {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: 12px;
+    padding: 24px;
+    transition: transform 0.2s;
+}
+
+.admin-summary-card:hover {
+    transform: translateY(-2px);
+}
+
+.admin-card-title {
+    color: var(--admin-text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.admin-card-value {
+    color: var(--admin-text-primary);
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.admin-card-change {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    font-size: 0.875rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.admin-card-change.positive {
+    background: rgba(74, 222, 128, 0.1);
+    color: #4ade80;
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-top: 8px;
+}
+
+.admin-card-change.negative {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-top: 8px;
+}
+
+.admin-card-subtitle {
+    color: var(--admin-text-secondary);
+    font-size: 0.75rem;
+    margin-top: 4px;
+}
+
+.admin-section-card {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.admin-section-title {
+    font-size: 1.2em;
+    color: var(--admin-text-primary);
+    margin-bottom: 16px;
+    font-weight: 600;
+}
+</style>
+{% endblock %}

@@ -9,13 +9,21 @@
         :root {
             --section-bg: #f7fafd;
             --text-color: #333;
+            --text-secondary: #666;
             --title-color: #0288d1;
             --border-color: #ddd;
-        }        [data-theme="dark"] {
+            --table-header-bg: #f1f5f9;
+            --table-row-hover: #f8fafc;
+        }
+
+        [data-theme="dark"] {
             --section-bg: #1e293b;
             --text-color: #f1f5f9;
+            --text-secondary: #cbd5e1;
             --title-color: #38bdf8;
             --border-color: #475569;
+            --table-header-bg: #334155;
+            --table-row-hover: #1e293b;
         }
 
         body {
@@ -54,13 +62,27 @@
             width: 100%;
             border-collapse: collapse;
             margin: 1em 0;
+            background: var(--section-bg);
         }
 
-        th, td {
+        th {
+            padding: 14px 12px;
+            text-align: left;
+            border-bottom: 2px solid var(--border-color);
+            color: var(--text-color);
+            font-weight: 600;
+            background: var(--table-header-bg);
+        }
+
+        td {
             padding: 12px;
             text-align: left;
             border-bottom: 1px solid var(--border-color);
             color: var(--text-color);
+        }
+
+        tbody tr:hover {
+            background-color: var(--table-row-hover);
         }
 
         [data-theme="dark"] .sidebar {
@@ -147,19 +169,21 @@
         }
 
         .order-status-badge {
-            font-size: 0.6em;
-            margin-left: 18px;
+            display: inline-block;
+            font-size: 0.7em;
             padding: 4px 12px;
             border-radius: 12px;
-            background: #e3e8ee;
-            color: #0288d1;
-            font-weight: 600;
+            margin-left: 12px;
+            background: var(--title-color);
+            color: white;
             vertical-align: middle;
         }
 
         .empty-row {
             text-align: center;
-            color: var(--title-color);
+            color: var(--text-secondary);
+            padding: 24px;
+            font-style: italic;
         }
 
         .order-actions-row {

@@ -24,7 +24,7 @@ from routes.order_routes import order_bp
 from routes.other_routes import other_bp
 
 app.register_blueprint(product_bp)
-app.register_blueprint(admin_blueprint, url_prefix='/admin')
+app.register_blueprint(admin_blueprint)  # url_prefix is already set in blueprint
 app.register_blueprint(customer_blueprint, url_prefix='/customer')
 app.register_blueprint(order_bp)
 app.register_blueprint(other_bp)

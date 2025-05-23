@@ -4,6 +4,7 @@ from datetime import timedelta
 from models.admin_user import AdminUser
 from models import db
 from models.customer import Customer
+from flask import session
 
 def hash_password(password):
     # No hashing, just return the plain password
@@ -30,3 +31,11 @@ def verify_customer_login(email, password):
     if customer and verify_password(password, customer.PasswordHash):  # Use hashed password check
         return True
     return False
+
+def check_admin_login():
+    """Check if an admin is currently logged in"""
+    return session.get('admin_logged_in', False)
+
+def set_admin_login(status=True):
+    """Set the admin login status in session"""
+    session['admin_logged_in'] = status

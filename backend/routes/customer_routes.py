@@ -209,14 +209,20 @@ def place_order():
         if not product:
             flash("Product not found", "error")
             return redirect(url_for('customer.customer_dashboard', customer_id=customer_id))
+          # Convert QuantityPerUnit to int for comparison
+        current_stock = int(product.QuantityPerUnit)
         
         # Check stock availability
-        if int(product.QuantityPerUnit) < quantity:
+        if current_stock < quantity:
             flash("Not enough stock available", "error")
             return redirect(url_for('customer.customer_dashboard', customer_id=customer_id))
         
         # Set principal employee id
         principal_employee_id = 1
+        
+        # Update product quantity first to ensure stock availability
+        new_quantity = current_stock - quantity
+        product.QuantityPerUnit = str(new_quantity)
         
         # Create order with payment method
         order = Order(
@@ -239,9 +245,6 @@ def place_order():
             Discount=0
         )
         db.session.add(order_detail)
-        
-        # Update product quantity
-        product.QuantityPerUnit = str(int(product.QuantityPerUnit) - quantity)
         
         # Commit all changes in a transaction
         db.session.commit()

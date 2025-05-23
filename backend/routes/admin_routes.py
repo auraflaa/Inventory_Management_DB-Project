@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, session
 from models.admin_user import AdminUser
 from models.company import Company
 from models.product import Product
@@ -8,7 +8,7 @@ from models.order_detail import OrderDetail
 from models.purchase_order_detail import PurchaseOrderDetail
 from models.purchase_order import PurchaseOrder
 from models import db
-from services.auth_service import verify_admin_login
+from services.auth_service import verify_admin_login, check_admin_login, set_admin_login
 from services.admin_service import (
     get_all_customers, 
     get_all_orders, 
@@ -17,10 +17,11 @@ from services.admin_service import (
     add_company,
     delete_company_with_products
 )
+from services.analytics_service import get_analytics_data
 from sqlalchemy.exc import IntegrityError
 
 admin_bp = Blueprint('admin_routes', __name__, url_prefix='/api/admins')
-admin_blueprint = Blueprint('admin', __name__)
+admin_blueprint = Blueprint('admin', __name__, url_prefix='/admin')
 
 @admin_bp.route('/', methods=['GET'])
 def get_admins():
@@ -76,6 +77,7 @@ def admin_login():
             return render_template('admin_login.html', error="All fields are required")
 
         if verify_admin_login(username, password):
+            set_admin_login(True)  # Set admin as logged in
             return redirect(url_for('admin.admin_dashboard'))
             
         flash('Invalid username or password', 'error')
@@ -88,6 +90,14 @@ def admin_login():
 def admin_login_get():
     # Render the admin login page for GET requests
     return render_template('admin_login.html')
+
+# Admin Logout Route
+@admin_blueprint.route('/logout')
+def admin_logout():
+    set_admin_login(False)  # Clear admin login status
+    session.clear()  # Clear all session data
+    flash('You have been logged out successfully', 'success')
+    return redirect(url_for('admin.admin_login'))
 
 # Admin Dashboard Route
 @admin_blueprint.route('/dashboard', methods=['GET', 'POST'])
@@ -504,3 +514,29 @@ def admin_order_details(order_id):
     except Exception as e:
         flash("Error loading order details", "error")
         return redirect(url_for('admin.admin_orders'))
+
+@admin_blueprint.route('/analysis')
+def admin_analysis():
+    """Render the admin analysis dashboard"""
+    # Verify admin is logged in using session check
+    if not check_admin_login():
+        flash('Please log in to access the analytics dashboard', 'error')
+        return redirect(url_for('admin.admin_login'))
+    
+    try:
+        # Test analytics queries first
+        from services.analytics_service import test_analytics_queries
+        if not test_analytics_queries():
+            flash('Error retrieving analytics data. Please try again later.', 'error')
+            return redirect(url_for('admin.admin_dashboard'))
+        
+        # Get analytics data
+        analytics_data = get_analytics_data()
+        
+        return render_template(
+            'admin_analysis.html',
+            analytics=analytics_data
+        )
+    except Exception as e:
+        flash(f'Error loading analytics dashboard: {str(e)}', 'error')
+        return redirect(url_for('admin.admin_dashboard'))

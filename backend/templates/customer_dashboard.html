@@ -339,10 +339,14 @@
             </div>
             {% endfor %}
         </div>
-    </div>    
-    <div id="paymentMethodDialog" class="modal">
+    </div>      <div id="paymentMethodDialog" class="modal">
         <div class="modal-content">
-            <h3>Confirm Order: <span class="product-highlight"></span></h3>
+            <h3>Payment Method for Order</h3>
+            <div class="order-details">
+                <p>Product: <span class="product-highlight"></span></p>
+                <p>Quantity: <span class="quantity-highlight"></span></p>
+                <p>Total: ₹<span class="total-highlight"></span></p>
+            </div>
             <form id="paymentForm" class="payment-form">
                 <div class="payment-options">
                     <label class="payment-option">
@@ -360,17 +364,16 @@
                 </div>
                 <div class="modal-buttons">
                     <button type="button" class="secondary-btn" onclick="closePaymentDialog()">Cancel</button>
-                    <button type="submit" class="primary-btn">Place Order</button>
+                    <button type="submit" class="primary-btn">Confirm Order</button>
                 </div>
             </form>
         </div>
-    </div>
-    <div id="confirmationDialog" class="confirmation-dialog">
-        <h3>Cancel Order?</h3>
-        <p>Are you sure you want to cancel this order? This action cannot be undone.</p>
+    </div><div id="confirmationDialog" class="confirmation-dialog">
+        <h3>Leave Order Creation?</h3>
+        <p>Are you sure you want to cancel placing this order?</p>
         <div class="confirmation-buttons">
-            <button type="button" class="secondary-btn" onclick="hideConfirmationDialog(false)">No, Keep Order</button>
-            <button type="button" class="danger-btn" onclick="hideConfirmationDialog(true)">Yes, Cancel Order</button>
+            <button type="button" class="primary-btn" onclick="hideConfirmationDialog(false)">No, Continue Order</button>
+            <button type="button" class="secondary-btn" onclick="hideConfirmationDialog(true)">Yes, Cancel Order</button>
         </div>
     </div>
     <div id="confirmationOverlay" class="confirmation-overlay"></div>
@@ -401,26 +404,39 @@
     function submitOrder(form) {
         event.preventDefault();
         activeOrderForm = form;
+        // Get product and quantity details
         const productName = form.querySelector('input[name="product_name"]').value;
-        
+        const quantity = form.querySelector('input[name="quantity"]').value;
+        const unitPrice = parseFloat(form.querySelector('span.total-price').textContent.replace('Total: ₹','')) / quantity;
+        const total = unitPrice * quantity;
+
+        // Show payment dialog
         const dialog = document.getElementById('paymentMethodDialog');
         dialog.style.display = 'flex';
-        
-        // Update product name in dialog
-        const productSpan = document.querySelector('.product-highlight');
-        if (productSpan) {
-            productSpan.textContent = productName;
-        }
-        return false;
-    }    
 
-    function closePaymentDialog() {
-        const confirmationDialog = document.getElementById('confirmationDialog');
-        const confirmationOverlay = document.getElementById('confirmationOverlay');
-        confirmationDialog.style.display = 'flex';
-        confirmationOverlay.style.display = 'block';
+        // Update dialog details
+        const productSpan = document.querySelector('.product-highlight');
+        const quantitySpan = document.querySelector('.quantity-highlight');
+        const totalSpan = document.querySelector('.total-highlight');
+        if (productSpan) productSpan.textContent = productName;
+        if (quantitySpan) quantitySpan.textContent = quantity;
+        if (totalSpan) totalSpan.textContent = total.toFixed(2);
+        return false;
     }
 
+    function closePaymentDialog() {
+        const dialog = document.getElementById('paymentMethodDialog');
+        dialog.style.display = 'none';
+        activeOrderForm = null;
+    }
+
+    function showConfirmationDialog() {
+        const confirmationDialog = document.getElementById('confirmationDialog');
+        const confirmationOverlay = document.getElementById('confirmationOverlay');
+        confirmationDialog.style.display = 'block';
+        confirmationOverlay.style.display = 'block';
+    }
+    
     function hideConfirmationDialog(confirmCancel) {
         const confirmationDialog = document.getElementById('confirmationDialog');
         const confirmationOverlay = document.getElementById('confirmationOverlay');
@@ -439,11 +455,14 @@
             event.preventDefault();
             if (activeOrderForm) {
                 const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
-                const paymentInput = document.createElement('input');
-                paymentInput.type = 'hidden';
-                paymentInput.name = 'payment_method';
+                let paymentInput = activeOrderForm.querySelector('input[name="payment_method"]');
+                if (!paymentInput) {
+                    paymentInput = document.createElement('input');
+                    paymentInput.type = 'hidden';
+                    paymentInput.name = 'payment_method';
+                    activeOrderForm.appendChild(paymentInput);
+                }
                 paymentInput.value = paymentMethod;
-                activeOrderForm.appendChild(paymentInput);
 
                 try {
                     const formData = new FormData(activeOrderForm);
@@ -453,23 +472,19 @@
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest'
                         }
-                    });                    
-                    if (response.ok) {
-                        // Show success message and wait for popup duration before reloading
-                        showSuccessPopup('Order placed successfully!');
-                        // Wait for popup to finish before reloading (5 seconds + 300ms fade)
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 5300);
+                    });                    if (response.ok) {
+                        closePaymentDialog();
+                        // Refresh page immediately to show updated stock
+                        window.location.reload();
                     } else {
                         const error = await response.text();
+                        closePaymentDialog();
                         showSuccessPopup('Failed to place order: ' + error);
                     }
                 } catch (error) {
+                    closePaymentDialog();
                     showSuccessPopup('Failed to place order: ' + error.message);
                 }
-                
-                closePaymentDialog();
             }
         });
 

@@ -1,0 +1,16 @@
+/* Product table specific styles */
+.admin-table td.out-of-stock {
+    color: #dc3545;
+    font-weight: 500;
+}
+
+.out-of-stock-badge {
+    display: inline-block;
+    background-color: #ffebee;
+    color: #dc3545;
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 500;
+    margin-left: 8px;
+}
