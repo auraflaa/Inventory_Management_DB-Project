@@ -189,29 +189,47 @@ def place_order():
         product_id = request.form.get('product_id')
         quantity = int(request.form.get('quantity', 1))
         customer_id = request.args.get('customer_id') or request.form.get('customer_id')
-        print(f"[DEBUG] product_id={product_id}, quantity={quantity}, customer_id={customer_id}")
+        payment_method = request.form.get('payment_method', 'cash_on_delivery')
+
+        if not all([product_id, customer_id, payment_method]):
+            flash("Missing required information for order placement", "error")
+            return redirect(url_for('customer.customer_dashboard', customer_id=customer_id))
+
+        # Map payment method values to display names
+        payment_methods = {
+            'cash_on_delivery': 'Cash on Delivery',
+            'credit_card': 'Credit Card',
+            'debit_card': 'Debit Card'
+        }
+        
+        print(f"[DEBUG] product_id={product_id}, quantity={quantity}, customer_id={customer_id}, payment_method={payment_method}")
+        
+        # Get the product and verify it exists
         product = Product.query.get(product_id)
-        print(f"[DEBUG] product={product}")
         if not product:
-            print("[ERROR] Product not found")
-            return redirect(url_for('customer.customer_dashboard', customer_id=customer_id, error='Product not found.'))
-        print(f"[DEBUG] product.QuantityPerUnit={product.QuantityPerUnit}")
+            flash("Product not found", "error")
+            return redirect(url_for('customer.customer_dashboard', customer_id=customer_id))
+        
+        # Check stock availability
         if int(product.QuantityPerUnit) < quantity:
-            print("[ERROR] Not enough stock")
-            return redirect(url_for('customer.customer_dashboard', customer_id=customer_id, error='Not enough stock.'))
-        # Set principal employee id (e.g., 1)
+            flash("Not enough stock available", "error")
+            return redirect(url_for('customer.customer_dashboard', customer_id=customer_id))
+        
+        # Set principal employee id
         principal_employee_id = 1
-        # Create order
+        
+        # Create order with payment method
         order = Order(
             EmployeeID=principal_employee_id,
             CustomerID=customer_id,
             OrderDate=datetime.now(),
             ShippedDate=None,
-            OrderStatusID=1,  # Assuming 1 is 'Pending'
-            PaymentMethod='N/A'
+            OrderStatusID=1,  # Pending
+            PaymentMethod=payment_methods.get(payment_method, 'N/A')
         )
         db.session.add(order)
-        db.session.flush()  # Get order.OrderID
+        db.session.flush()  # Get the order ID
+
         # Create order detail
         order_detail = OrderDetail(
             OrderID=order.OrderID,
@@ -221,16 +239,23 @@ def place_order():
             Discount=0
         )
         db.session.add(order_detail)
-        # Decrease product quantity
+        
+        # Update product quantity
         product.QuantityPerUnit = str(int(product.QuantityPerUnit) - quantity)
+        
+        # Commit all changes in a transaction
         db.session.commit()
-        print("[DEBUG] Order placed successfully")
-        return redirect(url_for('customer.customer_dashboard', customer_id=customer_id, success='1'))
+        
+        flash("Order placed successfully", "success")
+        return redirect(url_for('customer.customer_dashboard', customer_id=customer_id))
+        
     except Exception as e:
+        db.session.rollback()
         import traceback
-        print("[ERROR] Exception in place_order:")
+        print(f"[ERROR] Exception in place_order: {str(e)}")
         print(traceback.format_exc())
-        return redirect(url_for('customer.customer_dashboard', customer_id=request.args.get('customer_id') or request.form.get('customer_id'), error='Internal server error.'))
+        flash("Failed to place order. Please try again.", "error")
+        return redirect(url_for('customer.customer_dashboard', customer_id=customer_id))
 
 @customer_blueprint.route('/order/<int:order_id>', methods=['GET'])
 def customer_order_details(order_id):

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=width=device-width, initial-scale=1.0">
     <title>Customer Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <style>
@@ -134,28 +134,95 @@
                 min-width: 0;
             }
         }
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #888;
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
         }
-        .loading-spinner {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(79,195,247,0.2);
-            border-radius: 50%;
-            border-top-color: #4fc3f7;
-            animation: spin 1s ease-in-out infinite;
-            margin-bottom: 16px;
+        .modal-content {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .modal-content h3 {
+            color: #2196F3;
+            margin-bottom: 20px;
+            font-size: 1.3em;
         }
-        @media (prefers-reduced-motion: reduce) {
-            .loading-spinner {
-                animation: none;
-            }
+        .payment-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .payment-options {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .payment-option {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .payment-option:hover {
+            background: #f0f0f0;
+        }
+        .payment-option input[type="radio"] {
+            margin-right: 1rem;
+        }
+        .payment-option-label {
+            font-size: 1.1rem;
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .success-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4CAF50;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 2000;
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+        .product-highlight {
+            color: #2196F3;
+            font-weight: 500;
+        }
+        [data-theme="dark"] .modal-content {
+            background: #1f2937;
+            color: #e5e7eb;
+        }
+        [data-theme="dark"] .payment-option {
+            border-color: #374151;
+            background: #111827;
+        }
+        [data-theme="dark"] .payment-option:hover {
+            background: #374151;
         }
     </style>
 </head>
@@ -175,17 +242,14 @@
     </div>
     <div class="dashboard-container">
         <div class="dashboard-header">
-            <h1>Welcome, <span>{{ customer_name }}</span></h1>            <form id="delete-account-form" class="delete-account-form" method="POST" action="/customer/delete/{{ customer_id }}">
+            <h1>Welcome, <span>{{ customer_name }}</span></h1>
+            <form id="delete-account-form" class="delete-account-form" method="POST" action="/customer/delete/{{ customer_id }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <button type="button" id="delete-account-btn" class="danger-btn">Delete Account</button>
             </form>
         </div>
         <h2 id="products-section" class="products-section">Products</h2>
         <div id="products-container">
-            <div class="loading">
-                <div class="loading-spinner"></div>
-                <div>Loading products...</div>
-            </div>
             {% for product in products %}
             <div class="product-card">
                 <div class="product-info">
@@ -200,9 +264,10 @@
                 </div>
                 <div class="product-actions">
                     {% if product.QuantityPerUnit|int > 0 %}
-                    <form class="order-form" method="POST" action="{{ url_for('customer.place_order', customer_id=customer_id) }}">
+                    <form class="order-form" method="POST" action="{{ url_for('customer.place_order', customer_id=customer_id) }}" onsubmit="return submitOrder(this);">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <input type="hidden" name="product_id" value="{{ product.ProductID }}">
+                        <input type="hidden" name="product_name" value="{{ product.ProductName }}">
                         <label for="quantity-{{ product.ProductID }}" class="visually-hidden">Quantity</label>
                         <input type="number" 
                                id="quantity-{{ product.ProductID }}"
@@ -213,7 +278,9 @@
                                value="1"
                                required
                                aria-label="Quantity to order"
-                               placeholder="Qty">
+                               placeholder="Qty"
+                               oninput="updateTotal(this, {{ product.UnitPrice }}, 'total-{{ product.ProductID }}')">
+                        <span id="total-{{ product.ProductID }}" class="total-price">Total: ₹{{ product.UnitPrice }}</span>
                         <button type="submit" class="primary-btn">Buy Now</button>
                     </form>
                     {% else %}
@@ -223,29 +290,120 @@
             </div>
             {% endfor %}
         </div>
+    </div>    <div id="paymentMethodDialog" class="modal">
+        <div class="modal-content">
+            <h3>Confirm Order: <span class="product-highlight"></span></h3>
+            <form id="paymentForm" class="payment-form">
+                <div class="payment-options">
+                    <label class="payment-option">
+                        <input type="radio" name="payment_method" value="cash_on_delivery" checked>
+                        <span class="payment-option-label">💵 Cash on Delivery</span>
+                    </label>
+                    <label class="payment-option">
+                        <input type="radio" name="payment_method" value="credit_card">
+                        <span class="payment-option-label">💳 Credit Card</span>
+                    </label>
+                    <label class="payment-option">
+                        <input type="radio" name="payment_method" value="debit_card">
+                        <span class="payment-option-label">💳 Debit Card</span>
+                    </label>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="secondary-btn" onclick="closePaymentDialog()">Cancel</button>
+                    <button type="submit" class="primary-btn">Place Order</button>
+                </div>
+            </form>
+        </div>
     </div>
     <button id="darkModeToggle" class="dark-mode-toggle" title="Toggle dark mode">🌙</button>
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Remove loading state once products are loaded
-        const productsContainer = document.getElementById('products-container');
-        const loading = productsContainer.querySelector('.loading');
-        if (loading && productsContainer.children.length > 1) {
-            loading.remove();
-        }
+    // Global variable to store active order form
+    let activeOrderForm = null;
 
-        // Delete account confirmation
-        document.getElementById('delete-account-btn').onclick = function() {
-            if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-                document.getElementById('delete-account-form').submit();
+    function updateTotal(input, unitPrice, totalId) {
+        const quantity = parseInt(input.value) || 0;
+        const total = quantity * unitPrice;
+        document.getElementById(totalId).textContent = `Total: ₹${total.toFixed(2)}`;
+    }
+
+    function showSuccessPopup(message) {
+        const popup = document.createElement('div');
+        popup.className = 'success-popup';
+        popup.textContent = message;
+        document.body.appendChild(popup);
+
+        setTimeout(() => {
+            popup.style.opacity = '0';
+            setTimeout(() => popup.remove(), 300);
+        }, 2000);
+    }
+
+    function submitOrder(form) {
+        event.preventDefault();
+        activeOrderForm = form;
+        const productName = form.querySelector('input[name="product_name"]').value;
+        
+        const dialog = document.getElementById('paymentMethodDialog');
+        dialog.style.display = 'flex';
+        
+        // Update product name in dialog
+        const productSpan = document.querySelector('.product-highlight');
+        if (productSpan) {
+            productSpan.textContent = productName;
+        }
+        return false;
+    }
+
+    function closePaymentDialog() {
+        const dialog = document.getElementById('paymentMethodDialog');
+        dialog.style.display = 'none';
+        activeOrderForm = null;
+    }    document.addEventListener('DOMContentLoaded', function() {
+        // Handle payment form submission
+        document.getElementById('paymentForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            if (activeOrderForm) {
+                const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
+                const paymentInput = document.createElement('input');
+                paymentInput.type = 'hidden';
+                paymentInput.name = 'payment_method';
+                paymentInput.value = paymentMethod;
+                activeOrderForm.appendChild(paymentInput);
+
+                try {
+                    const formData = new FormData(activeOrderForm);
+                    const response = await fetch(activeOrderForm.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    if (response.ok) {
+                        // Show success message
+                        showSuccessPopup('Order placed successfully!');
+                        // Redirect to the same page to refresh the product list
+                        window.location.reload();
+                    } else {
+                        const error = await response.text();
+                        showSuccessPopup('Failed to place order: ' + error);
+                    }
+                } catch (error) {
+                    showSuccessPopup('Failed to place order: ' + error.message);
+                }
+                
+                closePaymentDialog();
+            }
+        });
+
+        // Handle clicking outside modal
+        window.onclick = function(event) {
+            const dialog = document.getElementById('paymentMethodDialog');
+            if (event.target === dialog) {
+                closePaymentDialog();
             }
         };
-
-        // Show success message for orders
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('success') === '1') {
-            alert('Order placed successfully!');
-        }
 
         // Dark mode toggle
         const darkModeBtn = document.getElementById('darkModeToggle');
@@ -265,7 +423,7 @@
             setDarkMode(!document.body.classList.contains('dark-mode'));
         };
 
-        // Set initial dark mode state
+        // Set initial dark mode
         {% if default_dark_mode %}
             setDarkMode(true);
         {% else %}

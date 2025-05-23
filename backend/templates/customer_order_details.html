@@ -1,35 +1,136 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order Details</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <style>
+        :root {
+            --section-bg: #f7fafd;
+            --text-color: #333;
+            --title-color: #0288d1;
+            --border-color: #ddd;
+        }
+
+        [data-theme="dark"] {
+            --section-bg: #1f2937;
+            --text-color: #e5e7eb;
+            --title-color: #60a5fa;
+            --border-color: #374151;
+        }
+
+        body {
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        [data-theme="dark"] body {
+            background-color: #111827;
+            color: var(--text-color);
+        }
+
         .section-card {
-            background: #f7fafd;
+            background: var(--section-bg);
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.07);
             padding: 28px 32px 32px 32px;
             margin-bottom: 32px;
+            transition: background-color 0.3s;
         }
+
         .section-title {
-            color: #0288d1;
+            color: var(--title-color);
             font-size: 1.4em;
             margin-bottom: 18px;
             font-weight: 600;
         }
+
         .dashboard-header h1 {
-            color: #0288d1;
+            color: var(--title-color);
             font-size: 2em;
             font-weight: 700;
             margin-bottom: 0.5em;
         }
-        .dashboard-header {
-            margin-bottom: 24px;
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1em 0;
         }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        [data-theme="dark"] .sidebar {
+            background: #1f2937;
+            border-right: 1px solid #374151;
+        }
+
+        [data-theme="dark"] .sidebar-nav a {
+            color: #e5e7eb;
+        }
+
+        [data-theme="dark"] .sidebar-nav a:hover {
+            background: #374151;
+        }
+
+        .dark-mode-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px;
+            border-radius: 50%;
+            background: #0288d1;
+            color: white;
+            border: none;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+        }
+
+        .dark-mode-toggle:hover {
+            transform: scale(1.1);
+        }
+
         @media (max-width: 700px) {
-            .section-card { padding: 10px 2vw; }
+            .section-card { 
+                padding: 10px 2vw; 
+            }
+        }
+
+        .order-status-badge {
+            font-size: 0.6em;
+            margin-left: 18px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            background: #e3e8ee;
+            color: #0288d1;
+            font-weight: 600;
+            vertical-align: middle;
+        }
+
+        .empty-row {
+            text-align: center;
+            color: var(--title-color);
+        }
+
+        .order-actions-row {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .inline-form {
+            display: inline;
         }
     </style>
 </head>
@@ -42,11 +143,24 @@
         <ul class="sidebar-nav">
             <li><a href="/customer/dashboard/{{ order.CustomerID }}"><span class="sidebar-icon">📦</span> Products</a></li>
             <li><a href="/customer/orders/{{ order.CustomerID }}"><span class="sidebar-icon">🧾</span> My Orders</a></li>
+            <li><a href="/customer/settings/{{ order.CustomerID }}"><span class="sidebar-icon">⚙️</span> Settings</a></li>
         </ul>
     </div>
     <div class="dashboard-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
         <div class="dashboard-header">
-            <h1>Order Details (Order #{{ order.OrderID }})</h1>
+            <h1>Order Details (Order #{{ order.OrderID }})
+                <span class="order-status-badge">
+                    {{ order.OrderStatusID == 1 and 'Pending' or order.OrderStatusID == 2 and 'Shipped' or order.OrderStatusID == 3 and 'Delivered' or 'Unknown' }}
+                </span>
+            </h1>
         </div>
         <div class="section-card">
             <div class="section-title">Product Details</div>
@@ -68,21 +182,48 @@
                         <td>{{ product.CompanyName }}</td>
                         <td>{{ product.VendorName }}</td>
                         <td>{{ product.Quantity }}</td>
-                        <td>{{ product.UnitPrice }}</td>
+                        <td>₹{{ product.UnitPrice }}</td>
                     </tr>
                     {% endfor %}
                     {% else %}
-                    <tr><td colspan="5" style="text-align:center; color:red;">No product details found for this order.</td></tr>
+                    <tr><td colspan="5" class="empty-row">No product details found for this order.</td></tr>
                     {% endif %}
                 </tbody>
             </table>
-            <a href="/customer/orders/{{ order.CustomerID }}" class="primary-btn">Back to My Orders</a>
-            {% if order.OrderStatusID == 1 %}            <form method="POST" action="/customer/order/{{ order.OrderID }}/cancel" style="margin-top:20px;">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                <button type="submit" class="danger-btn">Cancel Order</button>
-            </form>
-            {% endif %}
+            <div class="order-actions-row">
+                <a href="/customer/orders/{{ order.CustomerID }}" class="primary-btn">Back to My Orders</a>
+                {% if order.OrderStatusID == 1 %}
+                <form method="POST" action="/customer/order/{{ order.OrderID }}/cancel" class="inline-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" class="danger-btn">Cancel Order</button>
+                </form>
+                {% endif %}
+            </div>
         </div>
     </div>
+
+    <button id="darkModeToggle" class="dark-mode-toggle" title="Toggle dark mode">🌙</button>
+
+    <script>
+        // Dark mode toggle functionality
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const htmlElement = document.documentElement;
+        
+        // Check for saved dark mode preference
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            htmlElement.setAttribute('data-theme', savedTheme);
+            darkModeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+        }
+        
+        darkModeToggle.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            darkModeToggle.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        });
+    </script>
 </body>
 </html>
