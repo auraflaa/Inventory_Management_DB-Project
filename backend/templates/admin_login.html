@@ -88,16 +88,12 @@
             <div class="admin-form-group">
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" required>
-            </div>
-            <div class="admin-form-actions">
+            </div>            <div class="admin-form-actions">
                 <button type="submit" class="admin-button">
                     <span class="admin-icon">🔐</span>
                     <span class="admin-button-text">Login</span>
                 </button>
             </div>
-            {% if error %}
-            <div class="admin-form-message error">{{ error }}</div>
-            {% endif %}
         </form>
     </div>
 </body>

@@ -72,16 +72,17 @@ def admin_login():
     try:
         username = request.form.get('username')
         password = request.form.get('password')
+        
         if not username or not password:
             flash('Username and password are required', 'error')
-            return render_template('admin_login.html', error="All fields are required")
+            return render_template('admin_login.html')
 
         if verify_admin_login(username, password):
             set_admin_login(True)  # Set admin as logged in
             return redirect(url_for('admin.admin_dashboard'))
             
-        flash('Invalid username or password', 'error')
-        return render_template('admin_login.html', error="Wrong username or password")
+        flash('Wrong username or password', 'error')
+        return render_template('admin_login.html')
     except Exception as e:
         flash(str(e), 'error')
         return render_template('admin_login.html', error=str(e))
