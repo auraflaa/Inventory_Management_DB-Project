@@ -146,6 +146,90 @@
         body.dark-mode .settings-btn {
             box-shadow: 0 1px 4px rgba(16,24,42,0.13);
         }
+        .confirmation-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+        }
+        .confirmation-modal.show {
+            display: flex;
+        }
+        .confirmation-content {
+            background: #fff;
+            padding: 28px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+            animation: modalIn 0.3s ease-out;
+        }
+        @keyframes modalIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .confirmation-content h3 {
+            color: #e53935;
+            margin-bottom: 16px;
+            font-size: 1.4em;
+        }
+        .confirmation-content p {
+            color: #333;
+            margin-bottom: 24px;
+            font-size: 1.1em;
+            line-height: 1.5;
+        }
+        .confirmation-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+        .confirmation-buttons button {
+            padding: 10px 24px;
+            border-radius: 6px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .confirm-delete {
+            background: #e53935;
+            color: white;
+            border: none;
+        }
+        .confirm-delete:hover {
+            background: #d32f2f;
+        }
+        .cancel-delete {
+            background: #e0e0e0;
+            color: #333;
+            border: none;
+        }
+        .cancel-delete:hover {
+            background: #bdbdbd;
+        }
+        body.dark-mode .confirmation-content {
+            background: #16213a;
+        }
+        body.dark-mode .confirmation-content h3 {
+            color: #ef5350;
+        }
+        body.dark-mode .confirmation-content p {
+            color: #e0e6ed;
+        }
+        body.dark-mode .cancel-delete {
+            background: #2c3e50;
+            color: #e0e6ed;
+        }
+        body.dark-mode .cancel-delete:hover {
+            background: #34495e;
+        }
     </style>
 </head>
 <body>
@@ -175,6 +259,18 @@
         </div>
     </div>
     <button id="darkModeToggle" style="position:fixed;bottom:24px;right:24px;z-index:2000;background:#232526;color:#fff;border:none;border-radius:50%;width:44px;height:44px;box-shadow:0 2px 8px rgba(0,0,0,0.12);font-size:1.3em;cursor:pointer;transition:background 0.2s;" title="Toggle dark mode">🌙</button>
+
+    <div id="deleteConfirmationModal" class="confirmation-modal">
+        <div class="confirmation-content">
+            <h3>Delete Account</h3>
+            <p>Are you sure you want to delete your account? This action cannot be undone.</p>
+            <div class="confirmation-buttons">
+                <button type="button" class="cancel-delete" id="cancelDelete">Cancel</button>
+                <button type="button" class="confirm-delete" id="confirmDelete">Delete Account</button>
+            </div>
+        </div>
+    </div>
+
     <script>
     // Dark mode toggle
     const darkModeBtn = document.getElementById('darkModeToggle');
@@ -197,10 +293,22 @@
     setDarkMode(true);
     {% else %}
     setDarkMode(localStorage.getItem('darkMode') === '1');
-    {% endif %}
-    document.getElementById('delete-account-btn').onclick = function() {
-        if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-            document.getElementById('delete-account-form').submit();
+    {% endif %}    document.getElementById('delete-account-btn').onclick = function() {
+        document.getElementById('deleteConfirmationModal').classList.add('show');
+    };
+    
+    document.getElementById('cancelDelete').onclick = function() {
+        document.getElementById('deleteConfirmationModal').classList.remove('show');
+    };
+    
+    document.getElementById('confirmDelete').onclick = function() {
+        document.getElementById('delete-account-form').submit();
+    };
+    
+    // Close modal when clicking outside
+    document.getElementById('deleteConfirmationModal').onclick = function(event) {
+        if (event.target === this) {
+            this.classList.remove('show');
         }
     };
     </script>
