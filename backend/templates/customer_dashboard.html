@@ -290,12 +290,7 @@
         </div>
     </div>
     <div class="dashboard-container">
-        <div class="dashboard-header">
-            <h1>Welcome, <span>{{ customer_name }}</span></h1>
-            <form id="delete-account-form" class="delete-account-form" method="POST" action="/customer/delete/{{ customer_id }}">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                <button type="button" id="delete-account-btn" class="danger-btn">Delete Account</button>
-            </form>
+        <div class="dashboard-header">            <h1>Welcome, <span>{{ customer_name }}</span></h1>
         </div>
         <h2 id="products-section" class="products-section">Products</h2>
         <div id="products-container">
@@ -471,11 +466,13 @@
                         body: formData,
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    });                    if (response.ok) {
+                        }                    });                    if (response.ok) {
                         closePaymentDialog();
-                        // Refresh page immediately to show updated stock
-                        window.location.reload();
+                        showSuccessPopup('Order placed successfully! Thank you for your purchase.');
+                        // Wait for 1.5 seconds to show the success message before refreshing
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
                     } else {
                         const error = await response.text();
                         closePaymentDialog();
