@@ -5,6 +5,77 @@
 {% block header %}Company Management{% endblock %}
 
 {% block content %}
+    <style>
+        .confirmation-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .confirmation-modal.show {
+            display: flex;
+        }
+        .confirmation-content {
+            background: var(--admin-surface);
+            padding: 28px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+            animation: modalIn 0.3s ease-out;
+        }
+        @keyframes modalIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .confirmation-content h3 {
+            color: #e53935;
+            margin-bottom: 16px;
+            font-size: 1.4em;
+        }
+        .confirmation-content p {
+            color: var(--admin-text-primary);
+            margin-bottom: 24px;
+            font-size: 1.1em;
+            line-height: 1.5;
+        }
+        .confirmation-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+        .confirmation-buttons button {
+            padding: 10px 24px;
+            border-radius: 6px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .confirm-delete {
+            background: #e53935;
+            color: white;
+            border: none;
+        }
+        .confirm-delete:hover {
+            background: #d32f2f;
+        }
+        .cancel-delete {
+            background: var(--admin-surface-variant);
+            color: var(--admin-text-primary);
+            border: none;
+        }
+        .cancel-delete:hover {
+            background: var(--admin-border);
+        }
+    </style>
+
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
@@ -35,11 +106,10 @@
                     <td>{{ company.Address or 'N/A' }}</td>
                     <td>{{ company.City or 'N/A' }}</td>
                     <td>{{ company.StateAbbrev or 'N/A' }}</td>
-                    <td>{{ company.ProductCount }} product(s)</td>
-                    <td class="admin-actions">
-                        <form method="POST" action="{{ url_for('admin.delete_company', company_id=company.CompanyID) }}" class="admin-inline-form" onsubmit="return adminUI.company.confirmDelete('{{ company.CompanyName }}', {{ company.ProductCount }})">
+                    <td>{{ company.ProductCount }} product(s)</td>                    <td class="admin-actions">
+                        <form id="delete-company-form-{{ company.CompanyID }}" method="POST" action="{{ url_for('admin.delete_company', company_id=company.CompanyID) }}" class="admin-inline-form">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                            <button type="submit" class="admin-btn btn-danger" title="Delete company and all its products">
+                            <button type="button" class="admin-btn btn-danger" title="Delete company and all its products" onclick="showDeleteConfirmation('{{ company.CompanyName }}', {{ company.CompanyID }}, {{ company.ProductCount }})">
                                 <span class="admin-icon">🗑️</span> Delete
                             </button>
                         </form>
@@ -81,6 +151,17 @@
             </div>
         </form>
     </div>
+
+    <div id="deleteConfirmationModal" class="confirmation-modal">
+        <div class="confirmation-content">
+            <h3>Delete Company</h3>
+            <p id="deleteConfirmationMessage"></p>
+            <div class="confirmation-buttons">
+                <button type="button" class="cancel-delete" onclick="hideDeleteConfirmation()">Cancel</button>
+                <button type="button" class="confirm-delete" onclick="confirmDelete()">Delete Company</button>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block scripts %}
@@ -90,5 +171,34 @@
         adminUI.dropdowns.init();
         adminUI.forms.init();
     });
+
+    let activeForm = null;
+
+    function showDeleteConfirmation(companyName, companyId, productCount) {
+        activeForm = document.getElementById('delete-company-form-' + companyId);
+        const message = productCount > 0 
+            ? `Are you sure you want to delete ${companyName}? This will also delete ${productCount} product(s) associated with this company.`
+            : `Are you sure you want to delete ${companyName}?`;
+        document.getElementById('deleteConfirmationMessage').textContent = message;
+        document.getElementById('deleteConfirmationModal').classList.add('show');
+    }
+
+    function hideDeleteConfirmation() {
+        document.getElementById('deleteConfirmationModal').classList.remove('show');
+        activeForm = null;
+    }
+
+    function confirmDelete() {
+        if (activeForm) {
+            activeForm.submit();
+        }
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('deleteConfirmationModal').onclick = function(event) {
+        if (event.target === this) {
+            hideDeleteConfirmation();
+        }
+    };
 </script>
 {% endblock %}
