@@ -161,6 +161,10 @@
     document.addEventListener('DOMContentLoaded', function() {
         adminUI.dropdowns.init();
         adminUI.forms.init();
+        
+        {% if popup_message %}
+            adminUI.notifications.show("{{ popup_message.message }}", "{{ popup_message.type }}");
+        {% endif %}
     });
 
     let activeForm = null;

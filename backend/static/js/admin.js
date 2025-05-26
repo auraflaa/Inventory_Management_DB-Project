@@ -203,6 +203,9 @@ const adminUI = {
 
     notifications: {
         show: (message, type = 'success') => {
+            // Remove existing notifications of the same type
+            document.querySelectorAll(`.admin-notification-${type}`).forEach(n => n.remove());
+
             const notification = document.createElement('div');
             notification.className = `admin-notification admin-notification-${type}`;
             notification.innerHTML = `
@@ -215,18 +218,35 @@ const adminUI = {
             document.body.appendChild(notification);
             
             // Add active class after a brief delay for animation
-            setTimeout(() => notification.classList.add('active'), 10);
+            requestAnimationFrame(() => {
+                notification.classList.add('active');
+            });
             
-            // Auto-hide after 5 seconds
-            setTimeout(() => {
+            // Auto-hide after 3 seconds
+            const hideTimeout = setTimeout(() => {
                 notification.classList.remove('active');
                 setTimeout(() => notification.remove(), 300);
-            }, 5000);
+            }, 3000);
             
             // Close button handler
-            notification.querySelector('.admin-notification-close').addEventListener('click', () => {
+            const closeBtn = notification.querySelector('.admin-notification-close');
+            closeBtn.addEventListener('click', () => {
+                clearTimeout(hideTimeout);
                 notification.classList.remove('active');
                 setTimeout(() => notification.remove(), 300);
+            });
+
+            // Pause auto-hide when hovering
+            notification.addEventListener('mouseenter', () => {
+                clearTimeout(hideTimeout);
+            });
+
+            // Resume auto-hide when mouse leaves
+            notification.addEventListener('mouseleave', () => {
+                const newHideTimeout = setTimeout(() => {
+                    notification.classList.remove('active');
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
             });
         }
     },

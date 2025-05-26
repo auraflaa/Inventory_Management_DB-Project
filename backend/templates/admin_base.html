@@ -34,18 +34,14 @@
     <div class="admin-content">        <div class="admin-header">
             <h1>{% block header %}{% endblock %}</h1>
         </div>
-        
-        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
                     {% if category == 'success' %}
-                        <div class="admin-alert {{ category }}" style="display:none;">
-                            {{ message }}
-                        </div>
                         <script>
-                            window.onload = function() {
+                            document.addEventListener('DOMContentLoaded', function() {
                                 adminUI.notifications.show('{{ message }}', '{{ category }}');
-                            }
+                            });
                         </script>
                     {% else %}
                         <div class="admin-alert {{ category }}">
