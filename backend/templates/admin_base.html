@@ -33,8 +33,7 @@
     
     <div class="admin-content">        <div class="admin-header">
             <h1>{% block header %}{% endblock %}</h1>
-        </div>
-          {% with messages = get_flashed_messages(with_categories=true) %}
+        </div>          {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
                     {% if category == 'success' %}
@@ -51,6 +50,15 @@
                 {% endfor %}
             {% endif %}
         {% endwith %}
+        
+        {# Show popup messages from session #}
+        {% if popup_message %}
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    adminUI.notifications.show('{{ popup_message.message }}', '{{ popup_message.type }}');
+                });
+            </script>
+        {% endif %}
         
         {% block content %}{% endblock %}
     </div>

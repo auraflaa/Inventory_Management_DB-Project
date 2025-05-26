@@ -338,7 +338,7 @@ def admin_companies():
             if result['success']:
                 session['show_success_popup'] = {
                     'message': result['message'],
-                    'type': 'success'
+                    'type': 'success'  # Green background for successful creation
                 }
             else:
                 flash(result['message'], 'error')
@@ -358,7 +358,7 @@ def delete_company(company_id):
     if result['success']:
         session['show_success_popup'] = {
             'message': result['message'],
-            'type': 'success'
+            'type': 'deletion'  # Red background for successful deletion
         }
     else:
         flash(result['message'], 'error')

@@ -424,8 +424,6 @@
     max-width: 380px;
     padding: 12px 20px;
     border-radius: 8px;
-    background: var(--admin-surface);
-    border: 1px solid var(--admin-border);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     transform: translateX(120%);
     transition: transform 0.3s ease-out;
@@ -440,7 +438,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    color: var(--admin-text-primary);
+    font-weight: 500;
 }
 
 .admin-notification-close {
@@ -450,22 +448,24 @@
     padding: 4px;
     background: none;
     border: none;
-    color: var(--admin-text-secondary);
+    color: rgba(255, 255, 255, 0.8);
     cursor: pointer;
     font-size: 16px;
     line-height: 1;
 }
 
-.admin-notification-success {
-    background: rgba(74, 222, 128, 0.1);
-    border-color: rgba(74, 222, 128, 0.2);
-    color: var(--admin-success);
+.admin-notification-close:hover {
+    color: #fff;
 }
 
-.admin-notification-error {
-    background: rgba(239, 68, 68, 0.1);
-    border-color: rgba(239, 68, 68, 0.2);
-    color: var(--admin-error);
+.admin-notification-success {
+    background: #2e7d32;
+    color: #ffffff;
+}
+
+.admin-notification-error, .admin-notification-deletion {
+    background: #d32f2f;
+    color: #ffffff;
 }
 
 /* Responsive Design */
