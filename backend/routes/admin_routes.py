@@ -366,104 +366,99 @@ def delete_company(company_id):
 
 @admin_blueprint.route('/orders')
 def admin_orders():
-    # Import the required models
-    from models.order import Order
-    from models.customer import Customer
-    from models.order_status import OrderStatus
-    from datetime import datetime
-    
-    delivered_status_id = 3  # Status ID 3 is 'Delivered'
-    
-    # Base query with joins
-    query = db.session.query(
-        Order, 
-        Customer,
-        OrderStatus
-    ).join(
-        Customer, 
-        Order.CustomerID == Customer.CustomerID
-    ).join(
-        OrderStatus,
-        Order.OrderStatusID == OrderStatus.OrderStatusID
-    )
+    if not check_admin_login():
+        return redirect(url_for('admin.admin_login'))
 
-    # Get all orders and split them based on status
-    orders = query.all()
-    
-    # Process orders into delivered and pending lists
-    delivered_orders = []
-    pending_orders = []
-    
-    for order, customer, status in orders:
-        order_info = {
+    from models.order import Order
+    from models.order_status import OrderStatus
+    from models.customer import Customer
+
+    # Query orders with customer info and status
+    orders = db.session.query(
+        Order,
+        OrderStatus.OrderStatusName.label('StatusName'),
+        OrderStatus.OrderStatusID,
+        Customer.FirstName,
+        Customer.LastName
+    ).join(
+        OrderStatus, Order.OrderStatusID == OrderStatus.OrderStatusID
+    ).join(
+        Customer, Order.CustomerID == Customer.CustomerID
+    ).order_by(
+        Order.OrderDate.desc()  # Newest first
+    ).all()
+
+    # Initialize lists for different order categories
+    pending_orders = []    # Status ID 1 (Pending) and 2 (Shipped)
+    delivered_orders = []  # Status ID 3 (Delivered)
+    canceled_orders = []   # Status ID 4 (Cancelled)
+
+    for order, status_name, status_id, fname, lname in orders:
+        order_dict = {
             'OrderID': order.OrderID,
-            'CustomerID': customer.CustomerID,
-            'CustomerName': f"{customer.FirstName} {customer.LastName}",
+            'CustomerName': f"{fname} {lname}",
             'OrderDate': order.OrderDate,
             'ShippedDate': order.ShippedDate,
-            'OrderStatusID': order.OrderStatusID,
-            'StatusName': status.OrderStatusName
+            'OrderStatusID': status_id,
+            'StatusName': status_name
         }
         
-        # Orders with status 3 (Delivered) go to delivered_orders, others to pending_orders
-        if order.OrderStatusID == delivered_status_id:
-            delivered_orders.append(order_info)
-        else:
-            pending_orders.append(order_info)
+        if status_id in [1, 2]:  # Pending or Shipped
+            pending_orders.append(order_dict)
+        elif status_id == 3:     # Delivered
+            delivered_orders.append(order_dict)
+        elif status_id == 4:     # Cancelled
+            canceled_orders.append(order_dict)
 
-    # Get all order statuses for the dropdown (Status 1-Pending, 2-Shipped, 3-Delivered)
-    order_statuses = OrderStatus.query.all()
+    # Sort pending orders to show pending (1) before shipped (2)
+    pending_orders.sort(key=lambda x: (x['OrderStatusID'], -x['OrderDate'].timestamp()))
 
-    return render_template(
-        'admin_orders.html',
-        pending_orders=pending_orders,
-        delivered_orders=delivered_orders,
-        order_statuses=order_statuses
-    )
+    # Get available statuses for dropdown (excluding Cancelled)
+    order_statuses = OrderStatus.query.filter(OrderStatus.OrderStatusID != 4).all()
 
-@admin_blueprint.route('/orders/<int:order_id>/status', methods=['POST'])
+    return render_template('admin_orders.html',
+                         pending_orders=pending_orders,
+                         delivered_orders=delivered_orders,
+                         canceled_orders=canceled_orders,
+                         order_statuses=order_statuses)
+
+@admin_blueprint.route('/orders/update-status/<int:order_id>', methods=['POST'])
 def update_order_status(order_id):
+    if not check_admin_login():
+        return redirect(url_for('admin.admin_login'))
+
+    from models.order import Order
+    from models.order_status import OrderStatus
+    import datetime
+
     try:
-        from models.order import Order
-        from models.order_status import OrderStatus
-        from datetime import datetime
-
         order = Order.query.get_or_404(order_id)
-        new_status = int(request.form.get('status'))
         
-        # Check if current status is "Delivered" (status ID 3)
-        if order.OrderStatusID == 3:
-            flash("Cannot modify status of delivered orders", "error")
+        # Don't allow updating cancelled orders
+        if order.OrderStatusID == 4:  # Cancelled
+            flash('Cannot update cancelled orders', 'error')
             return redirect(url_for('admin.admin_orders'))
 
-        status = OrderStatus.query.get(new_status)
-        if not status:
-            flash("Invalid status selected", "error")
+        new_status_id = int(request.form.get('status'))
+        
+        # Validate the new status
+        if new_status_id == 4:  # Cannot set to cancelled through this route
+            flash('Invalid status change', 'error')
             return redirect(url_for('admin.admin_orders'))
-
-        # Update the order status
-        previous_status = order.OrderStatusID
-        order.OrderStatusID = new_status
+            
+        # Update order status
+        order.OrderStatusID = new_status_id
         
-        # If new status is "Delivered" (status ID 3), set the shipped date
-        if new_status == 3:
-            if request.form.get('confirmed') != 'true':
-                # Return to the orders page if not confirmed
-                flash("Please confirm before marking the order as delivered", "warning")
-                return redirect(url_for('admin.admin_orders'))
-            order.ShippedDate = datetime.now()
-            flash(f"Order #{order_id} has been marked as delivered. This action cannot be undone.", "info")
-        else:
-            flash(f"Order #{order_id} status updated to {status.OrderStatusName}", "success")
-        
+        # If status is changing to shipped, update shipped date
+        if new_status_id == 2 and not order.ShippedDate:  # Shipped
+            order.ShippedDate = datetime.datetime.now()
+            
         db.session.commit()
+        flash('Order status updated successfully', 'success')
         
-    except ValueError:
-        db.session.rollback()
-        flash("Invalid status value provided", "error")
     except Exception as e:
         db.session.rollback()
-        flash(f"Error updating order status: {str(e)}", "error")
+        flash(f'Error updating order status: {str(e)}', 'error')
         
     return redirect(url_for('admin.admin_orders'))
 

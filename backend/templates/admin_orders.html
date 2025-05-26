@@ -6,7 +6,7 @@
 
 {% block content %}
 <div class="admin-section-card">
-    <div class="admin-section-title">Pending Orders</div>
+    <div class="admin-section-title">Processing Orders</div>
     {% if pending_orders %}
     <table class="admin-table">
         <thead>
@@ -15,6 +15,7 @@
                 <th>Customer</th>
                 <th>Date</th>
                 <th>Status</th>
+                <th>Shipped Date</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -23,11 +24,13 @@
             <tr>
                 <td>{{ order.OrderID }}</td>
                 <td>{{ order.CustomerName }}</td>
-                <td>{{ order.OrderDate.strftime('%Y-%m-%d %H:%M') }}</td>                <td>
+                <td>{{ order.OrderDate.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>
+                    {% if order.OrderStatusID != 4 %}  {# Not cancelled #}
                     <form id="statusForm{{ order.OrderID }}" method="POST" action="{{ url_for('admin.update_order_status', order_id=order.OrderID) }}" class="admin-inline-form">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <input type="hidden" name="confirmed" value="false" id="confirmed{{ order.OrderID }}"/>
-                        <select name="status" class="status-select" data-order-id="{{ order.OrderID }}" aria-label="Order Status for Order #{{ order.OrderID }}" title="Change order status">
+                        <select name="status" class="status-select status-{{ order.StatusName.lower() }}" data-order-id="{{ order.OrderID }}" aria-label="Order Status for Order #{{ order.OrderID }}" title="Change order status">
                             {% for status in order_statuses %}
                             <option value="{{ status.OrderStatusID }}" {% if status.OrderStatusID == order.OrderStatusID %}selected{% endif %}>
                                 {{ status.OrderStatusName }}
@@ -35,7 +38,11 @@
                             {% endfor %}
                         </select>
                     </form>
+                    {% else %}
+                    <span class="status-canceled">{{ order.StatusName }}</span>
+                    {% endif %}
                 </td>
+                <td>{{ order.ShippedDate.strftime('%Y-%m-%d %H:%M') if order.ShippedDate else 'Not shipped' }}</td>
                 <td>
                     <a href="{{ url_for('admin.admin_order_details', order_id=order.OrderID) }}" class="admin-action-btn">
                         <span class="admin-icon">📋</span> View Details
@@ -46,7 +53,7 @@
         </tbody>
     </table>
     {% else %}
-    <p>No pending orders found.</p>
+    <p>No orders in process.</p>
     {% endif %}
 </div>
 
@@ -86,14 +93,56 @@
     {% endif %}
 </div>
 
+<div class="admin-section-card">
+    <div class="admin-section-title">Canceled Orders</div>
+    {% if canceled_orders %}
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Order Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in canceled_orders %}
+            <tr>
+                <td>{{ order.OrderID }}</td>
+                <td>{{ order.CustomerName }}</td>
+                <td>{{ order.OrderDate.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td><span class="status-canceled">{{ order.StatusName }}</span></td>
+                <td>
+                    <a href="{{ url_for('admin.admin_order_details', order_id=order.OrderID) }}" class="admin-action-btn">
+                        <span class="admin-icon">📋</span> View Details
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No canceled orders found.</p>
+    {% endif %}
+</div>
+
 <style>
-.status-delivered {
-    padding: 6px 12px;
-    background-color: #4CAF50;
-    color: white;
-    border-radius: 4px;
-    display: inline-block;
-    font-weight: 500;
+.admin-section-card {
+    margin-bottom: 2rem;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 1.5rem;
+}
+
+.admin-section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e0e0e0;
 }
 
 .status-select {
@@ -104,176 +153,96 @@
     min-width: 150px;
 }
 
+/* Status badges */
+.status-pending {
+    padding: 6px 12px;
+    background-color: #ff9800;  /* Orange for pending */
+    color: white;
+    border-radius: 4px;
+    display: inline-block;
+    font-weight: 500;
+}
+
+.status-shipped {
+    padding: 6px 12px;
+    background-color: #2196F3;  /* Blue for shipped */
+    color: white;
+    border-radius: 4px;
+    display: inline-block;
+    font-weight: 500;
+}
+
+.status-delivered {
+    padding: 6px 12px;
+    background-color: #4CAF50;  /* Green for delivered */
+    color: white;
+    border-radius: 4px;
+    display: inline-block;
+    font-weight: 500;
+}
+
+.status-canceled {
+    padding: 6px 12px;
+    background-color: #f44336;  /* Red for canceled */
+    color: white;
+    border-radius: 4px;
+    display: inline-block;
+    font-weight: 500;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 0;
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.admin-table th {
+    background-color: #f5f5f5;
+    font-weight: 600;
+    color: #333;
+}
+
+.admin-table tr:hover {
+    background-color: #f8f9fa;
+}
+
 .admin-inline-form {
     display: inline-block;
 }
 
-.confirmation-dialog {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: #ffffff;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
-    display: none;
-    min-width: 400px;
-    border: 1px solid #e0e0e0;
-}
-
-.confirmation-dialog.show, .overlay.show {
-    display: block;
-}
-
-.confirmation-dialog h3 {
-    margin: 0 0 20px 0;
-    color: #1a1a1a;
-    font-size: 1.4em;
-    font-weight: 600;
-    border-bottom: 2px solid #e0e0e0;
-    padding-bottom: 10px;
-}
-
-.confirmation-dialog p {
-    margin: 10px 0;
-    color: #333333;
-    font-size: 1.1em;
-    line-height: 1.5;
-}
-
-.confirmation-dialog p strong {
-    color: #d32f2f;
-    font-weight: 600;
-}
-
-.confirmation-buttons {
-    margin-top: 25px;
-    text-align: right;
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-}
-
-.confirmation-buttons button {
-    padding: 10px 24px;
-    border: none;
+.admin-action-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    background-color: #e0e0e0;
+    color: #333;
+    text-decoration: none;
     border-radius: 4px;
-    cursor: pointer;
-    font-size: 1em;
-    font-weight: 500;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.2s;
 }
 
-.confirm-yes {
-    background-color: #2e7d32;
-    color: #ffffff;
+.admin-action-btn:hover {
+    background-color: #d0d0d0;
 }
 
-.confirm-yes:hover {
-    background-color: #1b5e20;
-}
-
-.confirm-no {
-    background-color: #d32f2f;
-    color: #ffffff;
-}
-
-.confirm-no:hover {
-    background-color: #b71c1c;
-}
-
-.overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
-    display: none;
-    z-index: 999;
-    -webkit-backdrop-filter: blur(2px);
-    backdrop-filter: blur(2px);
+.admin-icon {
+    margin-right: 6px;
 }
 </style>
 
-<!-- Add confirmation dialog HTML -->
-<div id="confirmationOverlay" class="overlay">
-    <div id="confirmationDialog" class="confirmation-dialog">
-        <h3>Confirm Status Change</h3>
-        <p>Are you sure you want to mark this order as <strong>Delivered</strong>?</p>
-        <p><strong>Warning:</strong> This action cannot be undone.</p>
-        <div class="confirmation-buttons">
-            <button class="confirm-no" onclick="cancelStatusChange()">Keep Current Status</button>
-            <button class="confirm-yes" onclick="confirmStatusChange()">Yes, Mark as Delivered</button>
-        </div>
-    </div>
-</div>
-
 <script>
-let currentSelect = null;
-let currentForm = null;
-
-function showConfirmationDialog() {
-    document.getElementById('confirmationOverlay').classList.add('show');
-    document.getElementById('confirmationDialog').classList.add('show');
-}
-
-function hideConfirmationDialog() {
-    document.getElementById('confirmationOverlay').classList.remove('show');
-    document.getElementById('confirmationDialog').classList.remove('show');
-}
-
-function cancelStatusChange() {
-    if (currentSelect) {
-        currentSelect.value = currentSelect.getAttribute('data-previous-value');
-    }
-    hideConfirmationDialog();
-}
-
-function confirmStatusChange() {
-    if (currentForm) {
-        const orderId = currentForm.querySelector('.status-select').getAttribute('data-order-id');
-        document.getElementById(`confirmed${orderId}`).value = 'true';
-        currentForm.submit();
-    }
-    hideConfirmationDialog();
-}
-
 document.addEventListener('DOMContentLoaded', function() {
-    // Close dialog when clicking outside
-    document.getElementById('confirmationOverlay').addEventListener('click', function(e) {
-        if (e.target === this) {
-            cancelStatusChange();
-        }
-    });
-
     const selects = document.querySelectorAll('.status-select');
     selects.forEach(select => {
-        // Store initial value
-        select.setAttribute('data-previous-value', select.value);
-        
-        // Add change event listener
-        select.addEventListener('change', function(event) {
-            const selectedValue = this.value;
-            const orderId = this.getAttribute('data-order-id');
-            const form = document.getElementById(`statusForm${orderId}`);
-            
-            // If status is being changed to "Delivered" (status ID 3)
-            if (selectedValue === "3") {
-                event.preventDefault();
-                currentSelect = this;
-                currentForm = form;
-                showConfirmationDialog();
-            } else {
-                form.submit();
-            }
-        });
-
-        // Store the value when select is focused
-        select.addEventListener('focus', function() {
-            this.setAttribute('data-previous-value', this.value);
+        select.addEventListener('change', function() {
+            this.closest('form').submit();
         });
     });
 });
