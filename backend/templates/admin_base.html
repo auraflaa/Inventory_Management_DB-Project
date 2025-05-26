@@ -31,17 +31,27 @@
         </ul>
     </div>
     
-    <div class="admin-content">
-        <div class="admin-header">
+    <div class="admin-content">        <div class="admin-header">
             <h1>{% block header %}{% endblock %}</h1>
         </div>
         
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="admin-alert {{ category }}">
-                        {{ message }}
-                    </div>
+                    {% if category == 'success' %}
+                        <div class="admin-alert {{ category }}" style="display:none;">
+                            {{ message }}
+                        </div>
+                        <script>
+                            window.onload = function() {
+                                adminUI.notifications.show('{{ message }}', '{{ category }}');
+                            }
+                        </script>
+                    {% else %}
+                        <div class="admin-alert {{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endif %}
                 {% endfor %}
             {% endif %}
         {% endwith %}

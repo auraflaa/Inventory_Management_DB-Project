@@ -335,10 +335,11 @@ def admin_companies():
     try:
         if request.method == 'POST':
             result = add_company(request.form)
-            if result['success']:
-                flash(result['message'], 'success')
-            else:
+            # Only flash if it's an error
+            if not result['success']:
                 flash(result['message'], 'error')
+            # For success, we'll let the template handle it
+            return redirect(url_for('admin.admin_companies'))
 
         companies = get_all_companies()
         return render_template('admin_companies.html', companies=companies)

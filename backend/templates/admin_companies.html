@@ -73,16 +73,7 @@
         }
         .cancel-delete:hover {
             background: var(--admin-border);
-        }
-    </style>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="admin-alert {{ category }}">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
+        }    </style>
 
     <div class="admin-section-card">
         <div class="admin-section-title">All Companies</div>
