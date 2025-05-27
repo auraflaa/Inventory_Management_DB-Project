@@ -33,10 +33,12 @@ h1, h2 {
 }
 
 .login-container input {
-    margin-bottom: 15px;
-    padding: 10px;
+    margin-bottom: 15px;    padding: 10px;
     border: 1px solid #ccc;
     border-radius: 4px;
+    width: 100%;
+    box-sizing: border-box;
+    box-sizing: border-box; /* Include padding in width calculation */
 }
 
 .login-container button {

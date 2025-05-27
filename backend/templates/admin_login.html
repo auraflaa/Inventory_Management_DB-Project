@@ -45,6 +45,32 @@
             background: transparent;
             border: none;
             padding: 0;
+            width: 100%;
+        }
+        .admin-form-group {
+            margin-bottom: 20px;
+            width: 100%;
+        }
+        .admin-form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--admin-text-primary);
+            font-weight: 500;
+        }
+        .admin-form-group input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px;
+            border: 1px solid var(--admin-border);
+            border-radius: 4px;
+            font-size: 1rem;
+            background: var(--admin-surface);
+            color: var(--admin-text-primary);
+        }
+        .admin-form-group input:focus {
+            outline: none;
+            border-color: var(--admin-primary);
+            box-shadow: 0 0 0 2px rgba(var(--admin-primary-rgb), 0.2);
         }
         .admin-alert {
             margin-bottom: 24px;
@@ -52,6 +78,41 @@
         .admin-form-message {
             text-align: center;
             margin-top: 16px;
+        }
+        .admin-form-actions {
+            margin-top: 24px;
+        }
+        .admin-button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 4px;
+            background: var(--admin-accent);
+            color: var(--admin-text-primary);
+            border: none;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: var(--admin-transition);
+        }
+        .admin-button:hover {
+            background: #6D28D9;
+            transform: translateY(-1px);
+        }
+        .return-link {
+            display: block;
+            text-align: center;
+            margin-top: 16px;
+            color: var(--admin-text-secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: var(--admin-transition);
+        }
+        .return-link:hover {
+            color: var(--admin-text-primary);
         }
         @media (max-width: 480px) {
             .admin-login-container {
@@ -92,9 +153,8 @@
                 <button type="submit" class="admin-button">
                     <span class="admin-icon">🔐</span>
                     <span class="admin-button-text">Login</span>
-                </button>
-            </div>
-        </form>
+                </button>            </div>        </form>
+        <a href="{{ url_for('home') }}" class="return-link">← Return to Customer Login</a>
     </div>
 </body>
 </html>
