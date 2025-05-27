@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, url_for, jsonify, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_wtf.csrf import CSRFProtect
@@ -6,6 +6,16 @@ from flask_wtf.csrf import CSRFProtect
 app = Flask(__name__)
 CORS(app)
 csrf = CSRFProtect(app)
+
+# Add flash message management
+@app.before_request
+def check_flash_messages():
+    if request.path.endswith(('.js', '.css', '.ico', '.png', '.jpg', '.gif')):
+        # Skip static files
+        return
+    # Check for suppress_flash cookie
+    if request.cookies.get('suppress_flash'):
+        session.pop('_flashes', None)  # Clear flash messages
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Pritam@127.0.0.1/inventory_management'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False

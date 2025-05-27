@@ -17,13 +17,19 @@
         }
 
         [data-theme="dark"] {
-            --section-bg: #1e293b;
-            --text-color: #f1f5f9;
-            --text-secondary: #cbd5e1;
-            --title-color: #38bdf8;
-            --border-color: #475569;
-            --table-header-bg: #334155;
-            --table-row-hover: #1e293b;
+            --section-bg: #1F2A40;
+            --text-color: #F8F9F9;
+            --text-secondary: #A0AEC0;
+            --title-color: #3498DB;
+            --border-color: #2C3E50;
+            --table-header-bg: #2C3E50;
+            --table-row-bg: #1F2A40;
+            --table-row-hover-bg: #E2E8F0;
+            --table-row-hover-text: #1F2A40;
+            --accent-color: #1ABC9C;
+            --status-success: #2ECC71;
+            --status-pending: #F1C40F;
+            --status-error: #E74C3C;
         }
 
         body {
@@ -31,24 +37,26 @@
         }
 
         [data-theme="dark"] body {
-            background-color: #0f172a;
+            background-color: #0F1A2B;
             color: var(--text-color);
         }
 
         .section-card {
             background: var(--section-bg);
             border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             padding: 28px 32px 32px 32px;
             margin-bottom: 32px;
-            transition: background-color 0.3s;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
         }
 
         .section-title {
             color: var(--title-color);
-            font-size: 1.4em;
-            margin-bottom: 18px;
-            font-weight: 600;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
         }
 
         .dashboard-header h1 {
@@ -56,87 +64,106 @@
             font-size: 2em;
             font-weight: 700;
             margin-bottom: 0.5em;
+            letter-spacing: -0.02em;
         }
 
         table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0;
             margin: 1em 0;
             background: var(--section-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
         }
 
         th {
-            padding: 14px 12px;
+            padding: 16px 14px;
             text-align: left;
             border-bottom: 2px solid var(--border-color);
             color: var(--text-color);
-            font-weight: 600;
+            font-weight: 700;
             background: var(--table-header-bg);
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 0.05em;
         }
 
         td {
-            padding: 12px;
+            padding: 14px;
             text-align: left;
             border-bottom: 1px solid var(--border-color);
             color: var(--text-color);
+            font-weight: 500;
         }
 
-        tbody tr:hover {
-            background-color: var(--table-row-hover);
+        [data-theme="dark"] tbody tr {
+            background-color: var(--table-row-bg);
+            transition: all 0.2s ease;
+        }
+
+        [data-theme="dark"] tbody tr:hover {
+            background-color: var(--table-row-hover-bg);
+        }
+
+        [data-theme="dark"] tbody tr:hover td {
+            color: var(--table-row-hover-text);
+        }
+
+        [data-theme="dark"] .status-tag {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.875em;
+            display: inline-block;
+        }
+
+        [data-theme="dark"] .status-delivered {
+            background-color: var(--status-success);
+            color: #ffffff;
+        }
+
+        [data-theme="dark"] .status-pending {
+            background-color: var(--status-pending);
+            color: #000000;
+        }
+
+        [data-theme="dark"] .status-cancelled {
+            background-color: var(--status-error);
+            color: #ffffff;
+        }
+
+        [data-theme="dark"] .table-action-button {
+            background-color: var(--accent-color);
+            color: #ffffff;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        [data-theme="dark"] .table-action-button:hover {
+            background-color: #16A085;
+            transform: translateY(-1px);
         }
 
         [data-theme="dark"] .sidebar {
-            background: #1e293b;
-            border-right: 1px solid #475569;
+            background: var(--section-bg);
+            border-right: 1px solid var(--border-color);
         }
 
         [data-theme="dark"] .sidebar-nav a {
-            color: #f1f5f9;
+            color: var(--text-color);
+            font-weight: 500;
+            transition: all 0.2s ease;
         }
 
         [data-theme="dark"] .sidebar-nav a:hover {
-            background: #334155;
-        }
-
-        [data-theme="dark"] .alert {
-            background-color: #1e293b;
-            border-color: #475569;
-        }
-
-        [data-theme="dark"] .danger-btn {
-            background: #ef4444;
-            color: #ffffff;
-        }
-
-        [data-theme="dark"] .danger-btn:hover {
-            background: #dc2626;
-        }
-
-        [data-theme="dark"] .primary-btn {
-            background: #38bdf8;
-            color: #ffffff;
-        }
-
-        [data-theme="dark"] .primary-btn:hover {
-            background: #0ea5e9;
-        }
-
-        [data-theme="dark"] .secondary-btn {
-            background: #475569;
-            color: #f1f5f9;
-        }
-
-        [data-theme="dark"] .secondary-btn:hover {
-            background: #334155;
-        }
-
-        [data-theme="dark"] .confirmation-dialog {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        [data-theme="dark"] .order-status-badge {
-            background: #334155;
-            color: #38bdf8;
+            background: var(--table-row-hover);
+            color: var(--accent-color);
         }
 
         .dark-mode-toggle {
@@ -166,17 +193,47 @@
             .section-card { 
                 padding: 10px 2vw; 
             }
-        }
-
-        .order-status-badge {
+        }        .order-status-badge {
             display: inline-block;
             font-size: 0.7em;
             padding: 4px 12px;
             border-radius: 12px;
             margin-left: 12px;
-            background: var(--title-color);
             color: white;
             vertical-align: middle;
+            font-weight: 600;
+        }
+        
+        .order-status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background-color: #ffd54f;
+            color: #000;
+        }
+        
+        .status-shipped {
+            background-color: #4fc3f7;
+            color: #fff;
+        }
+        
+        .status-delivered {
+            background-color: #66bb6a;
+            color: #fff;
+        }
+        
+        .status-cancelled {
+            background-color: #ef5350;
+            color: #fff;
+        }
+        
+        .status-unknown {
+            background-color: #9e9e9e;
+            color: #fff;
         }
 
         .empty-row {
@@ -272,12 +329,9 @@
                     <div class="alert alert-{{ category }}">{{ message }}</div>
                 {% endfor %}
             {% endif %}
-        {% endwith %}
-
-        <div class="dashboard-header">
-            <h1>Order Details (Order #{{ order.OrderID }})
-                <span class="order-status-badge">
-                    {{ order.OrderStatusID == 1 and 'Pending' or order.OrderStatusID == 2 and 'Shipped' or order.OrderStatusID == 3 and 'Delivered' or 'Unknown' }}
+        {% endwith %}        <div class="dashboard-header">            <h1>Order Details (Order #{{ order.OrderID }})
+                <span class="order-status-badge status-{{ order.status_class }}">
+                    {{ order.status_text }}
                 </span>
             </h1>
         </div>

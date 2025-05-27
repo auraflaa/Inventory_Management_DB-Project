@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Orders</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">        <style>
         .section-card {
             background: #f7fafd;
             border-radius: 12px;
@@ -27,6 +26,31 @@
         }
         .dashboard-header {
             margin-bottom: 24px;
+        }
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            display: inline-block;
+            text-align: center;
+            min-width: 100px;
+        }
+        .status-pending {
+            background-color: #ffd54f;
+            color: #000;
+        }
+        .status-shipped {
+            background-color: #4fc3f7;
+            color: #fff;
+        }
+        .status-delivered {
+            background-color: #66bb6a;
+            color: #fff;
+        }
+        .status-cancelled {
+            background-color: #ef5350;
+            color: #fff;
         }
         @media (max-width: 700px) {
             .section-card { padding: 10px 2vw; }
@@ -64,9 +88,12 @@
                     {% for order in orders %}
                     <tr>
                         <td>{{ order.OrderID or order.id }}</td>
-                        <td>{{ order.OrderDate or order.date }}</td>
-                        <td>{{ order.Status or order.status }}</td>
-                        <td><a href="/customer/order/{{ order.OrderID or order.id }}" class="primary-btn">View Details</a></td>
+                        <td>{{ order.OrderDate or order.date }}</td>                        <td>
+                            <span class="status-badge status-{{ order.Status.lower() }}">
+                                {{ order.Status }}
+                            </span>
+                        </td>
+                        <td><a href="{{ url_for('customer.customer_order_details', order_id=order.OrderID) }}" class="primary-btn">View Details</a></td>
                     </tr>
                     {% endfor %}
                 </tbody>

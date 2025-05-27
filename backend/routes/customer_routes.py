@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for, session, flash
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for, session, flash, make_response
 from models.customer import Customer
 from models import db
 from services.auth_service import verify_customer_login
@@ -7,6 +7,7 @@ from services.customer_service import get_customer_orders, get_customer_products
 from models.product import Product
 from models.order import Order
 from models.order_detail import OrderDetail
+from models.order_status import OrderStatus
 from datetime import datetime
 
 customer_bp = Blueprint('customer_routes', __name__, url_prefix='/api/customers')
@@ -202,14 +203,13 @@ def place_order():
             'debit_card': 'Debit Card'
         }
         
-        print(f"[DEBUG] product_id={product_id}, quantity={quantity}, customer_id={customer_id}, payment_method={payment_method}")
-        
         # Get the product and verify it exists
         product = Product.query.get(product_id)
         if not product:
             flash("Product not found", "error")
             return redirect(url_for('customer.customer_dashboard', customer_id=customer_id))
-          # Convert QuantityPerUnit to int for comparison
+        
+        # Convert QuantityPerUnit to int for comparison
         current_stock = int(product.QuantityPerUnit)
         
         # Check stock availability
@@ -250,7 +250,9 @@ def place_order():
         db.session.commit()
         
         flash("Order placed successfully", "success")
-        return redirect(url_for('customer.customer_dashboard', customer_id=customer_id))
+        response = make_response(redirect(url_for('customer.customer_dashboard', customer_id=customer_id)))
+        response.set_cookie('suppress_flash', '1', max_age=1) # Cookie expires in 1 second
+        return response
         
     except Exception as e:
         db.session.rollback()
@@ -267,7 +269,21 @@ def customer_order_details(order_id):
     from models.product import Product
     from models.company import Company
     from models.product_vendor import ProductVendor
+
     order = Order.query.get_or_404(order_id)
+    
+    # Map status ID to status name and display text
+    status_mapping = {
+        1: {'css_class': 'pending', 'text': 'Pending'},
+        2: {'css_class': 'shipped', 'text': 'Shipped'},
+        3: {'css_class': 'delivered', 'text': 'Delivered'},
+        4: {'css_class': 'cancelled', 'text': 'Cancelled'}
+    }
+    
+    status = status_mapping.get(order.OrderStatusID, {'css_class': 'unknown', 'text': 'Unknown'})
+    order.status_class = status['css_class']
+    order.status_text = status['text']
+    
     order_details = OrderDetail.query.filter_by(OrderID=order_id).all()
     detailed_products = []
     for detail in order_details:
