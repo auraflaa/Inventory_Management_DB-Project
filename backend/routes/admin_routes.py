@@ -547,3 +547,81 @@ def admin_analysis():
     except Exception as e:
         flash(f'Error loading analytics dashboard: {str(e)}', 'error')
         return redirect(url_for('admin.admin_dashboard'))
+
+@admin_blueprint.route('/orders/relinquish/<int:order_id>', methods=['POST'])
+def relinquish_canceled_order(order_id):
+    if not check_admin_login():
+        return redirect(url_for('admin.admin_login'))
+
+    try:
+        from models.order import Order
+        from models.order_detail import OrderDetail
+        from models.product import Product
+        import datetime
+
+        # Get order and verify it exists
+        order = Order.query.get_or_404(order_id)
+        
+        # Verify order status
+        if order.OrderStatusID != 4:  # 4 is Cancelled status
+            flash('Only canceled orders can be relinquished', 'error')
+            return redirect(url_for('admin.admin_order_details', order_id=order_id))
+
+        # Check if already relinquished
+        if order.ShippedDate is not None:
+            flash('This order has already been relinquished', 'error')
+            return redirect(url_for('admin.admin_order_details', order_id=order_id))
+
+        # Start a transaction to handle all updates
+        db.session.begin_nested()
+        
+        try:
+            # Get order details
+            order_details = OrderDetail.query.filter_by(OrderID=order_id).all()
+            
+            # Return quantities to products
+            for detail in order_details:
+                product = Product.query.get(detail.ProductID)
+                if product:
+                    try:
+                        # Get current quantity - might be string or int
+                        current_qty = product.QuantityPerUnit
+                        if isinstance(current_qty, str):
+                            # If it's a string like "10 units", extract the number
+                            current_qty = int(current_qty.split()[0])
+                        else:
+                            # If it's already a number, use it as is
+                            current_qty = int(current_qty)
+                        
+                        # Add back the canceled quantity
+                        new_qty = current_qty + detail.Quantity
+                        
+                        # Format with units if it was a string before
+                        if isinstance(product.QuantityPerUnit, str) and ' ' in product.QuantityPerUnit:
+                            units = product.QuantityPerUnit.split(maxsplit=1)[1]
+                            product.QuantityPerUnit = f"{new_qty} {units}"
+                        else:
+                            # Otherwise just store the number
+                            product.QuantityPerUnit = new_qty
+
+                    except (ValueError, IndexError, AttributeError) as e:
+                        db.session.rollback()
+                        flash(f'Error parsing quantity for product {product.ProductName}: {str(e)}', 'error')
+                        return redirect(url_for('admin.admin_order_details', order_id=order_id))
+
+            # Mark order as relinquished 
+            order.ShippedDate = datetime.datetime.now()  # Use ShippedDate to mark relinquish date
+            
+            # Commit the transaction
+            db.session.commit()
+            flash('Products from canceled order have been returned to inventory', 'success')
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating quantities: {str(e)}', 'error')
+            return redirect(url_for('admin.admin_order_details', order_id=order_id))
+        
+    except Exception as e:
+        flash(f'Error relinquishing order: {str(e)}', 'error')
+        
+    return redirect(url_for('admin.admin_order_details', order_id=order_id))

@@ -16,8 +16,19 @@
             <div class="admin-detail-value">{{ order.OrderDate.strftime('%Y-%m-%d') if order.OrderDate else '' }}</div>
         </div>        <div class="admin-detail-group">
             <div class="admin-detail-label">Status:</div>
-            <div class="admin-detail-value">
-                {% if order.OrderStatusID != 4 %}
+            <div class="admin-detail-value">                {% if order.OrderStatusID == 4 %}
+                    <span class="status-canceled">Cancelled</span>
+                    {% if not order.ShippedDate %}
+                    <form method="POST" action="{{ url_for('admin.relinquish_canceled_order', order_id=order.OrderID) }}" class="relinquish-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <button type="button" class="relinquish-btn" onclick="showRelinquishConfirm(this)" title="Return products to available inventory">
+                            <span class="admin-icon">↩️</span> Return Products to Inventory
+                        </button>
+                    </form>
+                    {% else %}
+                    <span class="status-note">Products returned to inventory on {{ order.ShippedDate.strftime('%Y-%m-%d %H:%M') }}</span>
+                    {% endif %}
+                {% else %}
                 <form method="POST" action="{{ url_for('admin.update_order_status', order_id=order.OrderID) }}" class="admin-inline-form">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <select name="status" class="status-select" onchange="this.form.submit()">
@@ -28,8 +39,6 @@
                         {% endfor %}
                     </select>
                 </form>
-                {% else %}
-                    Delivered on {{ order.ShippedDate.strftime('%Y-%m-%d %H:%M') if order.ShippedDate else 'N/A' }}
                 {% endif %}
             </div>
         </div>
@@ -72,7 +81,65 @@
             <span class="admin-icon">←</span>
             Back to Orders
         </a>
+    </div>    <div id="relinquishConfirmDialog" class="confirmation-dialog">
+        <h3>Confirm Return to Inventory</h3>
+        <div class="confirmation-content">
+            <p>Are you sure you want to return these products to inventory?</p>
+            <p>This action will:</p>
+            <ul>
+                <li>Add the products back to available stock</li>
+                <li>Mark the order as relinquished</li>
+                <li>Keep the order history as cancelled</li>
+            </ul>
+        </div>
+        <div class="confirmation-buttons">
+            <button type="button" class="cancel-btn" onclick="closeRelinquishConfirm()">Cancel</button>
+            <button type="button" class="confirm-btn" onclick="confirmRelinquish(this)">Yes, Return Products</button>
+        </div>
     </div>
+
+<script>
+let relinquishForm = null;
+
+function showRelinquishConfirm(button) {
+    // Get the parent form of the clicked button
+    relinquishForm = button.closest('form');
+    const dialog = document.getElementById('relinquishConfirmDialog');
+    dialog.classList.add('show');
+    
+    // Add backdrop
+    const backdrop = document.createElement('div');
+    backdrop.className = 'dialog-backdrop';
+    document.body.appendChild(backdrop);
+}
+
+function closeRelinquishConfirm() {
+    const dialog = document.getElementById('relinquishConfirmDialog');
+    dialog.classList.remove('show');
+    relinquishForm = null;
+    
+    // Remove backdrop
+    const backdrop = document.querySelector('.dialog-backdrop');
+    if (backdrop) {
+        backdrop.remove();
+    }
+}
+
+function confirmRelinquish(button) {
+    if (relinquishForm) {
+        relinquishForm.submit();
+    }
+    closeRelinquishConfirm();
+}
+
+// Close dialog when clicking outside
+document.addEventListener('click', function(e) {
+    const dialog = document.getElementById('relinquishConfirmDialog');
+    if (e.target === dialog) {
+        closeRelinquishConfirm();
+    }
+});
+</script>
 
 <style>
 .admin-detail-group {
@@ -118,6 +185,131 @@
 .admin-inline-form {
     display: inline-block;
     margin: 0;
+}
+
+.dialog-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+}
+
+.confirmation-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    background: white;
+    padding: 24px;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    z-index: 1001;
+    max-width: 500px;
+    width: 90%;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease-in-out;
+}
+
+.confirmation-dialog.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.confirmation-dialog h3 {
+    margin: 0 0 16px 0;
+    color: #000;  /* Black for maximum contrast */
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.confirmation-content {
+    margin-bottom: 24px;
+    color: #1a365d;  /* Navy blue for better readability */
+    line-height: 1.5;
+}
+
+.confirmation-content ul {
+    margin: 12px 0;
+    color: #1a365d;  /* Navy blue for list items */
+    padding-left: 24px;
+}
+
+.confirmation-content li {
+    margin: 4px 0;
+    color: #666;
+}
+
+.confirmation-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.cancel-btn {
+    padding: 8px 16px;
+    border: 1px solid #dc3545;  /* Red border */
+    background: white;
+    color: #dc3545;  /* Red text */
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.confirm-btn {
+    padding: 8px 16px;
+    background: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.confirm-btn:hover {
+    background: #388e3c;
+    transform: translateY(-1px);
+}
+
+.cancel-btn:hover {
+    background: #dc3545;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.relinquish-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    color: #fff;
+    background-color: #2196F3;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.relinquish-btn:hover {
+    background-color: #1976D2;
+}
+
+.status-note {
+    display: inline-block;
+    padding: 6px 12px;
+    background-color: #E8F5E9;
+    color: #2E7D32;
+    border-radius: 4px;
+    font-size: 0.875rem;
 }
 </style>
 {% endblock %}
