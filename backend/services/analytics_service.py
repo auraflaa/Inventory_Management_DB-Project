@@ -11,16 +11,24 @@ def get_analytics_data():
     # Total number of customers
     total_customers = db.session.query(func.count(Customer.CustomerID)).scalar()
     
-    # Number of active customers (customers with at least one order)
-    active_customers = db.session.query(func.count(distinct(Order.CustomerID))).scalar()
+    # Number of active customers (customers with at least one non-canceled order)
+    active_customers = db.session.query(
+        func.count(distinct(Order.CustomerID))
+    ).filter(
+        Order.OrderStatusID != 4  # Exclude canceled orders
+    ).scalar()
     
-    # Total number of pending orders (OrderStatusID 1 is typically pending)
-    pending_orders = db.session.query(func.count(Order.OrderID)).filter(Order.OrderStatusID == 1).scalar()
+    # Total number of pending orders (OrderStatusID 1 is pending)
+    pending_orders = db.session.query(
+        func.count(Order.OrderID)
+    ).filter(
+        Order.OrderStatusID == 1
+    ).scalar()
     
     # Total number of products
     total_products = db.session.query(func.count(Product.ProductID)).scalar()
     
-    # Get product sales data from completed orders (OrderStatusID = 3 for Delivered)
+    # Get product sales data from completed orders, excluding canceled orders
     product_sales = db.session.query(
         Product.ProductID,
         Product.ProductName,
@@ -33,6 +41,12 @@ def get_analytics_data():
     ).outerjoin(
         Order,
         OrderDetail.OrderID == Order.OrderID
+    ).filter(
+        # Only include orders that are not canceled (or NULL for products with no orders)
+        db.or_(
+            Order.OrderStatusID == None,  # For products with no orders
+            Order.OrderStatusID != 4      # Exclude canceled orders
+        )
     ).group_by(
         Product.ProductID,
         Product.ProductName,
