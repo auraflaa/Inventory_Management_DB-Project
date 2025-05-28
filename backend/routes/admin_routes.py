@@ -411,10 +411,8 @@ def admin_orders():
             canceled_orders.append(order_dict)
 
     # Sort pending orders to show pending (1) before shipped (2)
-    pending_orders.sort(key=lambda x: (x['OrderStatusID'], -x['OrderDate'].timestamp()))
-
-    # Get available statuses for dropdown (excluding Cancelled)
-    order_statuses = OrderStatus.query.filter(OrderStatus.OrderStatusID != 4).all()
+    pending_orders.sort(key=lambda x: (x['OrderStatusID'], -x['OrderDate'].timestamp()))    # Get all available statuses for dropdown
+    order_statuses = OrderStatus.query.all()
 
     return render_template('admin_orders.html',
                          pending_orders=pending_orders,
@@ -434,18 +432,13 @@ def update_order_status(order_id):
     try:
         order = Order.query.get_or_404(order_id)
         
-        # Don't allow updating cancelled orders
+        # Don't allow updates to cancelled orders
         if order.OrderStatusID == 4:  # Cancelled
-            flash('Cannot update cancelled orders', 'error')
-            return redirect(url_for('admin.admin_orders'))
-
-        new_status_id = int(request.form.get('status'))
-        
-        # Validate the new status
-        if new_status_id == 4:  # Cannot set to cancelled through this route
-            flash('Invalid status change', 'error')
+            flash('Cancelled orders cannot be modified', 'error')
             return redirect(url_for('admin.admin_orders'))
             
+        new_status_id = int(request.form.get('status'))
+        
         # Update order status
         order.OrderStatusID = new_status_id
         
@@ -454,7 +447,14 @@ def update_order_status(order_id):
             order.ShippedDate = datetime.datetime.now()
             
         db.session.commit()
-        flash('Order status updated successfully', 'success')
+        
+        # Show appropriate message based on the new status
+        if new_status_id == 4:  # Cancelled
+            flash('Order has been cancelled. Products can be returned to inventory using the "Return Products to Inventory" button.', 'info')
+        elif new_status_id == 3:  # Delivered
+            flash('Order has been marked as delivered successfully', 'success')
+        else:
+            flash('Order status updated successfully', 'success')
         
     except Exception as e:
         db.session.rollback()

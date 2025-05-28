@@ -5,129 +5,72 @@
 {% block header %}Order Management{% endblock %}
 
 {% block content %}
-<div class="admin-section-card">
-    <div class="admin-section-title">Processing Orders</div>
-    {% if pending_orders %}
-    <table class="admin-table">
-        <thead>
-            <tr>
-                <th>Order ID</th>
-                <th>Customer</th>
-                <th>Date</th>
-                <th>Status</th>
-                <th>Shipped Date</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for order in pending_orders %}
-            <tr>
-                <td>{{ order.OrderID }}</td>
-                <td>{{ order.CustomerName }}</td>
-                <td>{{ order.OrderDate.strftime('%Y-%m-%d %H:%M') }}</td>
-                <td>
-                    {% if order.OrderStatusID != 4 %}  {# Not cancelled #}
-                    <form id="statusForm{{ order.OrderID }}" method="POST" action="{{ url_for('admin.update_order_status', order_id=order.OrderID) }}" class="admin-inline-form">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                        <input type="hidden" name="confirmed" value="false" id="confirmed{{ order.OrderID }}"/>
-                        <select name="status" class="status-select status-{{ order.StatusName.lower() }}" data-order-id="{{ order.OrderID }}" aria-label="Order Status for Order #{{ order.OrderID }}" title="Change order status">
-                            {% for status in order_statuses %}
-                            <option value="{{ status.OrderStatusID }}" {% if status.OrderStatusID == order.OrderStatusID %}selected{% endif %}>
-                                {{ status.OrderStatusName }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </form>
-                    {% else %}
-                    <span class="status-canceled">{{ order.StatusName }}</span>
-                    {% endif %}
-                </td>
-                <td>{{ order.ShippedDate.strftime('%Y-%m-%d %H:%M') if order.ShippedDate else 'Not shipped' }}</td>
-                <td>
-                    <a href="{{ url_for('admin.admin_order_details', order_id=order.OrderID) }}" class="admin-action-btn">
-                        <span class="admin-icon">📋</span> View Details
-                    </a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p>No orders in process.</p>
-    {% endif %}
-</div>
-
-<div class="admin-section-card">
-    <div class="admin-section-title">Delivered Orders</div>
-    {% if delivered_orders %}
-    <table class="admin-table">
-        <thead>
-            <tr>
-                <th>Order ID</th>
-                <th>Customer</th>
-                <th>Order Date</th>
-                <th>Delivery Date</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for order in delivered_orders %}
-            <tr>
-                <td>{{ order.OrderID }}</td>
-                <td>{{ order.CustomerName }}</td>
-                <td>{{ order.OrderDate.strftime('%Y-%m-%d %H:%M') }}</td>
-                <td>{{ order.ShippedDate.strftime('%Y-%m-%d %H:%M') if order.ShippedDate else 'Not shipped' }}</td>
-                <td><span class="status-delivered">{{ order.StatusName }}</span></td>
-                <td>
-                    <a href="{{ url_for('admin.admin_order_details', order_id=order.OrderID) }}" class="admin-action-btn">
-                        <span class="admin-icon">📋</span> View Details
-                    </a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p>No delivered orders found.</p>
-    {% endif %}
-</div>
-
-<div class="admin-section-card">
-    <div class="admin-section-title">Canceled Orders</div>
-    {% if canceled_orders %}
-    <table class="admin-table">
-        <thead>
-            <tr>
-                <th>Order ID</th>
-                <th>Customer</th>
-                <th>Order Date</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for order in canceled_orders %}
-            <tr>
-                <td>{{ order.OrderID }}</td>
-                <td>{{ order.CustomerName }}</td>
-                <td>{{ order.OrderDate.strftime('%Y-%m-%d %H:%M') }}</td>
-                <td><span class="status-canceled">{{ order.StatusName }}</span></td>
-                <td>
-                    <a href="{{ url_for('admin.admin_order_details', order_id=order.OrderID) }}" class="admin-action-btn">
-                        <span class="admin-icon">📋</span> View Details
-                    </a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p>No canceled orders found.</p>
-    {% endif %}
-</div>
-
 <style>
+.confirmation-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    z-index: 1001;
+    max-width: 400px;
+    width: 90%;
+    display: none;
+}
+
+.confirmation-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    display: none;
+}
+
+.dialog-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.confirm-btn {
+    background: #ef5350;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.cancel-btn {
+    background: #9e9e9e;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.dialog-content h3 {
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.dialog-content p {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.show {
+    display: block !important;
+}
+
 .admin-section-card {
     margin-bottom: 2rem;
     background: #ffffff;
@@ -235,16 +178,233 @@
 .admin-icon {
     margin-right: 6px;
 }
+
+.pending-relinquish {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 8px;
+    background-color: #ffd54f;
+    color: #000;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: normal;
+}
 </style>
 
+<div class="admin-section-card">
+    <div class="admin-section-title">Processing Orders</div>
+    {% if pending_orders %}
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Shipped Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in pending_orders %}
+            <tr>
+                <td>{{ order.OrderID }}</td>
+                <td>{{ order.CustomerName }}</td>
+                <td>{{ order.OrderDate.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>
+                    <form id="statusForm{{ order.OrderID }}" method="POST" action="{{ url_for('admin.update_order_status', order_id=order.OrderID) }}" class="admin-inline-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <select name="status" class="status-select status-{{ order.StatusName.lower() }}" 
+                                data-order-id="{{ order.OrderID }}"
+                                data-current-status="{{ order.OrderStatusID }}"
+                                aria-label="Order Status for Order #{{ order.OrderID }}" 
+                                title="Change order status">
+                            {% for status in order_statuses %}
+                                <option value="{{ status.OrderStatusID }}" 
+                                    {% if status.OrderStatusID == order.OrderStatusID %}selected{% endif %} 
+                                    {% if status.OrderStatusID == 4 %}style="color:#ef5350;font-weight:bold;"{% endif %}>
+                                    {{ status.OrderStatusName }}{% if status.OrderStatusID == 4 %} (Cancel){% endif %}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </td>
+                <td>{{ order.ShippedDate.strftime('%Y-%m-%d %H:%M') if order.ShippedDate else 'Not shipped' }}</td>
+                <td>
+                    <a href="{{ url_for('admin.admin_order_details', order_id=order.OrderID) }}" class="admin-action-btn">
+                        <span class="admin-icon">📋</span> View Details
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No orders in process.</p>
+    {% endif %}
+</div>
+
+<div class="admin-section-card">
+    <div class="admin-section-title">Delivered Orders</div>
+    {% if delivered_orders %}
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Order Date</th>
+                <th>Delivery Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in delivered_orders %}
+            <tr>
+                <td>{{ order.OrderID }}</td>
+                <td>{{ order.CustomerName }}</td>
+                <td>{{ order.OrderDate.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>{{ order.ShippedDate.strftime('%Y-%m-%d %H:%M') if order.ShippedDate else 'Not shipped' }}</td>
+                <td><span class="status-delivered">{{ order.StatusName }}</span></td>
+                <td>
+                    <a href="{{ url_for('admin.admin_order_details', order_id=order.OrderID) }}" class="admin-action-btn">
+                        <span class="admin-icon">📋</span> View Details
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No delivered orders found.</p>
+    {% endif %}
+</div>
+
+<div class="admin-section-card">
+    <div class="admin-section-title">Canceled Orders</div>
+    {% if canceled_orders %}
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Order Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in canceled_orders %}
+            <tr>                <td>{{ order.OrderID }}</td>
+                <td>{{ order.CustomerName }}</td>
+                <td>{{ order.OrderDate.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>
+                    <span class="status-canceled" title="Cancelled orders cannot be modified">
+                        {{ order.StatusName }}
+                        {% if not order.ShippedDate %}
+                            <span class="pending-relinquish" title="Products need to be returned to inventory">⚠️ Pending Return</span>
+                        {% endif %}
+                    </span>
+                </td>
+                <td>
+                    <a href="{{ url_for('admin.admin_order_details', order_id=order.OrderID) }}" class="admin-action-btn">
+                        <span class="admin-icon">📋</span> View Details
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No canceled orders found.</p>
+    {% endif %}
+</div>
+
+<!-- Status Change Confirmation Dialog -->
+<div id="statusConfirmDialog" class="confirmation-dialog">
+    <div class="dialog-content">
+        <h3 id="confirmTitle">Confirm Status Change</h3>
+        <p id="confirmMessage">Are you sure you want to update this order's status?</p>
+        <div class="dialog-buttons">
+            <button type="button" onclick="submitStatusChange()" class="confirm-btn" id="confirmBtn">Yes, Update Status</button>
+            <button type="button" onclick="cancelStatusChange()" class="cancel-btn">No, Keep Current Status</button>
+        </div>
+    </div>
+</div>
+
+<div id="confirmOverlay" class="confirmation-overlay"></div>
+
 <script>
+let activeForm = null;
+let originalStatus = null;
+let pendingChange = null;
+
 document.addEventListener('DOMContentLoaded', function() {
-    const selects = document.querySelectorAll('.status-select');
-    selects.forEach(select => {
-        select.addEventListener('change', function() {
-            this.closest('form').submit();
+    // Add change event listeners to all status selects
+    document.querySelectorAll('.status-select').forEach(select => {
+        select.addEventListener('change', function(event) {
+            event.preventDefault();
+            const newStatus = this.value;
+            const currentStatus = this.dataset.currentStatus;
+            const form = this.closest('form');
+            
+            // Store the form and original status
+            activeForm = form;
+            originalStatus = currentStatus;
+            pendingChange = newStatus;
+            
+            // Customize confirmation message based on status
+            const dialog = document.getElementById('statusConfirmDialog');
+            const title = document.getElementById('confirmTitle');
+            const message = document.getElementById('confirmMessage');
+            const confirmBtn = document.getElementById('confirmBtn');
+            
+            if (newStatus === "4") { // Cancel
+                title.textContent = "Confirm Order Cancellation";
+                message.textContent = "Are you sure you want to cancel this order? This action cannot be undone and the products will need to be manually returned to inventory.";
+                confirmBtn.textContent = "Yes, Cancel Order";
+                confirmBtn.style.background = "#ef5350";
+            } else if (newStatus === "3") { // Delivered
+                title.textContent = "Confirm Order Delivery";
+                message.textContent = "Are you sure you want to mark this order as delivered? This action cannot be undone.";
+                confirmBtn.textContent = "Yes, Mark as Delivered";
+                confirmBtn.style.background = "#4CAF50";
+            } else {
+                title.textContent = "Confirm Status Change";
+                message.textContent = "Are you sure you want to update this order's status?";
+                confirmBtn.textContent = "Yes, Update Status";
+                confirmBtn.style.background = "#2196F3";
+            }
+            
+            // Show confirmation dialog
+            dialog.classList.add('show');
+            document.getElementById('confirmOverlay').classList.add('show');
         });
     });
 });
+
+function submitStatusChange() {
+    if (activeForm) {
+        activeForm.submit();
+    }
+    closeConfirmDialog();
+}
+
+function cancelStatusChange() {
+    if (activeForm && originalStatus) {
+        // Reset the select to original value
+        const select = activeForm.querySelector('select');
+        select.value = originalStatus;
+    }
+    closeConfirmDialog();
+}
+
+function closeConfirmDialog() {
+    document.getElementById('statusConfirmDialog').classList.remove('show');
+    document.getElementById('confirmOverlay').classList.remove('show');
+    activeForm = null;
+    originalStatus = null;
+    pendingChange = null;
+}
 </script>
 {% endblock %}
