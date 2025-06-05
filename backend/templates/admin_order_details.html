@@ -61,11 +61,10 @@
             </thead>
             <tbody>
                 {% for item in order_items %}
-                <tr>
-                    <td>{{ item.ProductName }}</td>
+                <tr>                    <td>{{ item.ProductName }}</td>
                     <td>{{ item.VendorName }}</td>
                     <td>{{ item.Quantity }}</td>
-                    <td>${{ item.UnitPrice }}</td>
+                    <td>₹{{ item.UnitPrice }}</td>
                     <td>{{ item.Discount }}</td>
                 </tr>                {% endfor %}
                 <tr class="admin-total-row">
