@@ -1,139 +1,216 @@
-# Inventory Management Database Project
+# Inventory Management Database System
+
+An end-to-end web application for managing inventory, orders, and analytics. This dual-interface system offers both customer-facing shopping features and a comprehensive administrative dashboard for back-office operations.
+
+---
+
+## 🔗 Live Demo & Repository
+
+* **GitHub:** [auraflaa/Inventory\_Management\_DB-Project](https://github.com/auraflaa/Inventory_Management_DB-Project)
+
+---
+
+## 📋 Table of Contents
+
+1. [Overview](#overview)
+2. [Features](#features)
+3. [Technologies Used](#technologies-used)
+4. [Installation](#installation)
+5. [Usage](#usage)
+6. [Database Schema](#database-schema)
+7. [Security](#security)
+
+   * [CSRF Protection](#csrf-protection)
+8. [Contributing](#contributing)
+9. [License](#license)
+10. [Contact](#contact)
+
+---
 
 ## Overview
 
-This is a dual-purpose Inventory Management System project designed for both **customers** and **administrators**. Customers can use the interface to place and track orders, while administrators manage product inventories, vendors, purchase orders, and more.
+This Inventory Management Database System provides two distinct interfaces:
 
-Built for academic and practical learning purposes, this system offers a realistic demonstration of backend database interaction and operational inventory control in a structured, relational schema.
+* **Customer Panel:**
 
-## Table of Contents
+  * Browse and search products
+  * Place new orders
+  * Track shipment status (Delivered / Pending / Cancelled)
+  * View order history and details
 
-- [Overview](#overview)
-- [Features](#features)
-- [Technologies Used](#technologies-used)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Database Schema](#database-schema)
-- [Contributing](#contributing)
-- [License](#license)
-- [Contact](#contact)
+* **Admin Dashboard:**
+
+  * Manage products, vendors, employees (CRUD operations)
+  * Process and update order statuses
+  * Create purchase orders and manage stock inflows
+  * Interactive analytics for sales trends & current inventory
+  * Role-based access control for security
+
+Built with academic rigor and practical use in mind, this project demonstrates robust database design, RESTful API development, and a full-stack Flask application.
+
+---
 
 ## Features
 
-- **Customer Interface**: Allows placing, viewing, and tracking orders.
-- **Admin Dashboard**: Manages stock, orders, vendors, employees, and purchase flows.
-- **Modular Design**: Clear separation of customer and admin responsibilities.
-- **Database-Centric**: Structured around a normalized and relational schema.
-- **Authentication**: Simple role-based access to prevent unauthorized actions.
-- **Reporting**: Generate insights through transactional records and inventory logs.
+* **Customer Interface**: Place, view, and track orders through a user-friendly panel.
+* **Admin Dashboard**: Full control over inventory, vendors, purchase orders, and employees.
+* **Modular Separation**: Clear differentiation between customer and admin routes and templates.
+* **Normalized Relational Schema**: Entities include Products, Orders, OrderDetails, Vendors, PurchaseOrders, Companies, Employees.
+* **RESTful Flask APIs**: Clean service layers with Flask-MySQLAlchemy ORM.
+* **Interactive Reporting**: Dynamic bar charts for units sold and available stock.
+* **Authentication & Authorization**: Secure, role-based login flows.
+
+### Additional Highlights
+
+* **Form Validation & Flash Messages**: Both server-side and client-side validation with user feedback via Flask’s `flash`.
+* **Blueprint Architecture**: Organized codebase into Flask blueprints (`customer`, `admin`, `auth`) for maintainability.
+* **Error Handling**: Custom 404 and 500 error pages with informative messages.
+* **Search & Pagination**: Product search functionality and paginated listings for improved UX on large datasets.
+* **Configuration Management**: Environment-specific settings via `.env`, with development and production modes.
+* **Logging**: Structured logging setup capturing key events, errors, and user actions.
+* **Extensible Design**: Easily add new modules (e.g., reporting, notifications) by following existing patterns.
+
+---
 
 ## Technologies Used
 
-- **Frontend**: HTML, CSS, JS
-- **Backend**: Python with Flask
-- **Database**: MySQL (connected via SQLAlchemy and Flask-MySQLAlchemy)
-- **Development Environment**: Python virtual environments (`venv`)
-- **Version Control**: Git & GitHub
+| Component | Technology                          |
+| --------- | ----------------------------------- |
+| Frontend  | HTML5, CSS3, JavaScript (Jinja2)    |
+| Backend   | Python 3, Flask, Flask-MySQLAlchemy |
+| Database  | MySQL (InnoDB, normalized schema)   |
+| Dev Tools | Git, GitHub, Python `venv`          |
+
+---
 
 ## Installation
 
-> **Important:** A Python virtual environment must be set inside the `backend/` directory before installing dependencies.
+> Ensure you work within a Python virtual environment inside the `backend/` directory.
 
-1. **Clone the repository**:
+1. **Clone the repository**
+
    ```bash
    git clone https://github.com/auraflaa/Inventory_Management_DB-Project.git
-   ```
-
-2. **Navigate to the backend folder**:
-   ```bash
    cd Inventory_Management_DB-Project/backend
    ```
 
-3. **Create a virtual environment**:
+2. **Create and activate a virtual environment**
+
    ```bash
-   python -m venv venv
+   python3 -m venv venv
+   source venv/bin/activate  # Windows: venv\Scripts\activate
    ```
 
-4. **Activate the virtual environment**:
-   - On Windows:
-     ```bash
-     venv\Scripts\activate
-     ```
-   - On macOS/Linux:
-     ```bash
-     source venv/bin/activate
-     ```
+3. **Install dependencies**
 
-5. **Install the required Python packages**:
    ```bash
    pip install -r requirements.txt
    ```
 
-6. **Set up the database**:
-   - Create a database (e.g., `inventory_db`) in MySQL Workbench.
-   - Run the provided schema scripts to initialize tables.
+4. **Configure environment variables**
 
-7. **Environment Variables**:
-   - Create a `.env` file and define MySQL credentials and other config variables.
+   ```bash
+   cp .env.example .env
+   # Populate .env with your MySQL credentials and SECRET_KEY
+   ```
 
-## Usage
+5. **Initialize the database**
 
-### For Admin
-1. Start the server:
+   ```bash
+   python db/init_db.py  # creates tables and seed data
+   ```
+
+6. **Launch the server**
+
    ```bash
    flask run
    ```
-2. Access the admin panel:
-   ```
-   http://localhost:5000/admin
-   ```
-3. Log in with admin credentials to manage inventory, vendors, and employees.
 
-### For Customer
-1. Navigate to:
-   ```
-   http://localhost:5000/
-   ```
-2. Create or log in with a customer account to browse and place orders.
+---
+
+## Usage
+
+* **Customer Panel**: Visit `http://localhost:5000/`, sign up or log in, and browse products.
+* **Admin Dashboard**: Go to `http://localhost:5000/admin`, log in with admin credentials to manage the system.
+
+---
 
 ## Database Schema
 
-The project is designed with a fully normalized SQL schema, consisting of:
+The system is backed by a fully normalized relational MySQL database. Key tables include:
 
-- `Products`
-- `Orders`
-- `OrderStatus`
-- `OrderDetails`
-- `ProductVendors`
-- `Companies`
-- `PurchaseOrders`
-- `PurchaseOrderDetails`
-- `Employees`
+* `Products`
+* `Orders`
+* `OrderDetails`
+* `OrderStatus`
+* `ProductVendors`
+* `PurchaseOrders`
+* `PurchaseOrderDetails`
+* `Companies`
+* `Employees`
 
-> ER diagrams and SQL schema files are provided in the `database/` folder.
+ER diagrams and initial SQL schema scripts are available under the `database/` folder.
+
+---
+
+## Security
+
+We employ modern web security best practices to safeguard data and operations.
+
+### CSRF Protection
+
+1. **Flask-WTF Integration**
+
+   * Form classes inherit from `FlaskForm`, automatically embedding a signed hidden `csrf_token` field.
+
+2. **Template Inclusion**
+
+   * Include `{{ form.csrf_token }}` in every POST form. Example:
+
+   ```html
+   <form method="POST" action="{{ url_for('admin.add_product') }}">
+     {{ form.csrf_token }}
+     {{ form.name.label }} {{ form.name }}
+     <!-- more fields -->
+     <button type="submit">Add Product</button>
+   </form>
+   ```
+
+3. **Route Validation**
+
+   * `form.validate_on_submit()` checks CSRF token and input data. Invalid tokens cause a 400 error.
+
+4. **Secret Key Configuration**
+
+   * A robust `SECRET_KEY` in `.env` signs CSRF tokens and session cookies:
+
+     ```text
+     SECRET_KEY=your-very-secret-key
+     ```
+
+---
 
 ## Contributing
 
-1. Fork this repository.
-2. Create a feature branch:
-   ```bash
-   git checkout -b feature/your-feature
-   ```
-3. Make your changes, add tests if relevant.
-4. Commit and push:
-   ```bash
-   git commit -m "Add feature"
-   git push origin feature/your-feature
-   ```
-5. Open a pull request.
+Contributions welcome:
+
+1. Fork the repo
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Commit changes: `git commit -m "Add your feature"`
+4. Push: `git push origin feature/your-feature`
+5. Open a pull request
+
+---
 
 ## License
 
-This project is open-source and available under the [MIT License](LICENSE).
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for full terms.
+
+---
 
 ## Contact
 
-- **Author**: Priyangshu  
-- **GitHub**: [auraflaa](https://github.com/auraflaa)  
-- **Email**: priyangshumukherjee07@gmail.com 
-- **LinkedIn**: [Priyangshu Mukherjee](https://www.linkedin.com/in/priyangshu-mukherjee/)
+* **Author**: Priyangshu Mukherjee
+* **Email**: [priyangshumukherjee07@gmail.com](mailto:priyangshumukherjee07@gmail.com)
+* **GitHub**: [auraflaa](https://github.com/auraflaa)
+* **LinkedIn**: [Priyangshu Mukherjee](https://www.linkedin.com/in/priyangshu-mukherjee/)
