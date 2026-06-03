@@ -1,4 +1,13 @@
+<div align="center">
+
 # Inventory Management Database System
+
+
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+
+</div>
+
+---
 
 An end-to-end web application for managing inventory, orders, and analytics. This dual-interface system offers both customer-facing shopping features and a comprehensive administrative dashboard for back-office operations.
 
